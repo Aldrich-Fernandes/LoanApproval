@@ -1,0 +1,19 @@
+        CategoricalFeatures = {name: {} for name in FeatureNames}
+        FeatureColumns = DataMethod.Transpose(self.Dataset)
+        print(FeatureColumns)
+        for index, features in enumerate(FeatureColumns): # for each column
+            try: # For intergers
+                FeatureColumns[index] = list(map(int, features)) # turn string to int
+            except: # for strings  ###Instead could use hex values
+                uniqueStrings = {}  #store these
+                val = 0
+                for featureIndex, uniqueString in enumerate(features): # each element in the column
+                    if uniqueString not in uniqueStrings.keys(): # If it is a new element
+                        uniqueStrings[uniqueString] = val
+                        val += 1
+                    
+                    features[featureIndex] = uniqueStrings[uniqueString]
+                    featureIndex += 1
+                CategoricalFeatures[FeatureNames] = uniqueStrings
+        self.Dataset = DataMethod.Transpose(FeatureColumns)
+        print(CategoricalFeatures)

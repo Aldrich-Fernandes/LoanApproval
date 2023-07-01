@@ -1,16 +1,18 @@
 import csv, random
-import matplotlib.pyplot as plt
 
-class DataPrep:
-    def __init__(self, NumOfDatasets, path=r"DataSet\loan_sanction_train.csv"):
+class PreProcess:
+    def __init__(self, NumOfDatasets, path=r"DataSet\HomeLoanTrain.csv"):
         self.Dataset = DataMethod.CsvToArray(path, NumOfDatasets)
-        self.FeatureNames = self.Dataset.pop(0)
-        self.FeatureKeys, self.DataY = self.CleanData() # DataY = LoanStatus
+        self.DataX = []
+        self.DataY = []
+        
+        self.FeatureNames = self.Dataset.pop(0)    
+        self.FeatureDict = self.CleanData() 
+
         self.Display()
 
     def Display(self):
-        print("\n",self.FeatureNames)
-        for row in self.Dataset:
+        for row in list(zip(self.DataX, self.DataY)):
             print(row)
 
     def CleanData(self):
@@ -20,41 +22,41 @@ class DataPrep:
         
         FeatureColumns, CategoricalFeatureKeys = self.CreateFeatureColumns(FeatureColumns)
 
-        DataY = FeatureColumns.pop()
-        self.FeatureNames.pop()
+        self.DataY = FeatureColumns.pop()
 
-        self.Dataset = DataMethod.Transpose(FeatureColumns)
-        return CategoricalFeatureKeys, DataY
-
-    def ShuffleOrder(self):
-        random.shuffle(self.Dataset)
+        self.DataX = DataMethod.Transpose(FeatureColumns)
+        return CategoricalFeatureKeys
     
     def CreateFeatureColumns(self, FeatureColumns):
         CategoricalFeatureKeys = []
         for index, features in enumerate(FeatureColumns): # for each column
-            try: # For intergers
-                FeatureColumns[index] = list(map(int, features)) # turn string to int
+            try: # For decimals
+                FeatureColumns[index] = list(map(float, features)) # turn string to float
             except: # for strings  
-                FeatureKeys = {}
+                FeatureDict = {}
                 val = 0
-                for index, element in enumerate(features):
-                    if element not in FeatureKeys.keys():
-                        FeatureKeys[element] = val 
+                for RowIndex, element in enumerate(features):
+                    if element not in FeatureDict.keys():
+                        FeatureDict[element] = val 
                         val += 1 
-                    features[index] = int(FeatureKeys[element])
-                CategoricalFeatureKeys.append(FeatureKeys)
+                    features[RowIndex] = float(FeatureDict[element])
+                CategoricalFeatureKeys.append(FeatureDict)
         return FeatureColumns, CategoricalFeatureKeys
     
     def ReplaceMissingVals(self, FeatureColumns):
-        for Column in FeatureColumns:
-            if type(Column) == int:
-                ReplacementData = sum(Column)/len(Column)
-            else:
+
+        for Column in FeatureColumns: # Selects the most common / mean input
+            try:
+                Column = list(map(float, Column))
+                ReplacementData = sum(Column)/len(Column)                    
+            except: 
                 ReplacementData = max(set(Column), key = Column.count)
 
+            #Updates the missing vals in the column
             for index, element in enumerate(Column):
                 if element == "":
                     Column[index] = ReplacementData
+            
 
         return FeatureColumns
     
@@ -72,9 +74,6 @@ class DataMethod:
         for index, row in enumerate(randomTable): #removes loan ID from array
             randomTable[index] = row[1:]
         return randomTable
-    
-    def ArrayToCsv(path, Data):
-        raise NotImplementedError
 
     @staticmethod
     def Transpose(array):
@@ -83,3 +82,4 @@ class DataMethod:
             TransposedArray.append([array[x][y] for x in range(len(array))])
         
         return TransposedArray
+    

@@ -1,5 +1,5 @@
 from NeuralNetwork import NeuralNetwork
-from DataHandle import DataPrep
+from DataHandle import PreProcess
 
-DataPrep(50)
+PreProcess(50)
 

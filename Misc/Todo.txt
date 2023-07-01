@@ -1,7 +1,7 @@
 handle Outliers
 
 
-Edit PreProcess into 2 Datasets 
+Edit PreProcess into 4 Datasets 
     - XTrain
     - YTrain
     - XTest

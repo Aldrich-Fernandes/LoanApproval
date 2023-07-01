@@ -2,17 +2,27 @@ import csv, random
 
 class PreProcess:
     def __init__(self, NumOfDatasets, path=r"DataSet\HomeLoanTrain.csv"):
+        #Initial DataHolders
         self.Dataset = DataMethod.CsvToArray(path, NumOfDatasets)
-        self.DataX = []
-        self.DataY = []
+        self.TrainX = []
+        self.TrainY = []
         
+        #Dealing with categorical data
         self.FeatureNames = self.Dataset.pop(0)    
-        self.FeatureDict = self.CleanData() 
+        self.FeatureDict = self.CleanData()
 
-        self.Display()
+        # Spliiting for Training data
+        self.TestX, self.TestY = self.SplitData()
+
+        #self.Display()
 
     def Display(self):
-        for row in list(zip(self.DataX, self.DataY)):
+        print("\nTraining Data")
+        for row in list(zip(self.TrainX, self.TrainY)):
+            print(row)
+
+        print("\nTesting Data")
+        for row in list(zip(self.TestX, self.TestY)):
             print(row)
 
     def CleanData(self):
@@ -22,9 +32,9 @@ class PreProcess:
         
         FeatureColumns, CategoricalFeatureKeys = self.CreateFeatureColumns(FeatureColumns)
 
-        self.DataY = FeatureColumns.pop()
+        self.TrainY = FeatureColumns.pop()
 
-        self.DataX = DataMethod.Transpose(FeatureColumns)
+        self.TrainX = DataMethod.Transpose(FeatureColumns)
         return CategoricalFeatureKeys
     
     def CreateFeatureColumns(self, FeatureColumns):
@@ -57,8 +67,14 @@ class PreProcess:
                 if element == "":
                     Column[index] = ReplacementData
             
-
         return FeatureColumns
+    
+    def SplitData(self): # 80-20
+        NumOfTrainData = round(len(self.TrainX) * 0.2)
+        TestX = [self.TrainX.pop() for i in range(NumOfTrainData)]
+        TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
+        return TestX, TestY
+
     
 class DataMethod:
     @staticmethod

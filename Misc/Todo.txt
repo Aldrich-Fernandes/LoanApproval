@@ -1,6 +1,8 @@
-Create basic Neural network that has:
-    - 4 input
-    - 1 dense HiddenLayer
-    - 1 dense OutputLayer
-    
-Replace missing values with normalised equvilant
+handle Outliers
+
+
+Edit PreProcess into 2 Datasets 
+    - XTrain
+    - YTrain
+    - XTest
+    - YTrain

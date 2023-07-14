@@ -1,36 +1,48 @@
-from DataHandle import *
 import numpy as np
+from DataHandle import *
 
 class NeuralNetwork:
     def __init__(self):
-        self.currentDataset = 0
-        self.inputs = [[4, 6 , 3, 3],       # Dataset 1
-                       [3, 56, 3, 2],       # Dataset 2
-                       [2.4, 34, 5.2, 14]]  # Dataset 3
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(100).getData()
+        self.train()
         
-        self.weights = [[1, 3, 5, 3],       # Weights for first neuron in next layer
-                        [43, 5.3, 13, 35],  # Weights for second neuron in next layer
-                        [42, 3.2, 2, 4.3]]  # Weights for third neuron in next layer
+    def train(self):
+        Hiddenlayer = Layer(11, 7, ReLU())
+        Outputlayer = Layer(7, 2, Softmax())
 
-        self.bias = [2.2, 4, 5] # For each next neuron
+        Hiddenlayer.forward(self.TrainX)
+        Outputlayer.forward(Hiddenlayer.output)
+        
+        self.result = Outputlayer.output
 
-        self.output = np.dot(self.inputs, self.weights) + self.bias
-        self.hiddenLayer = NeuralLayer()
-        self.outputLayer = NeuralLayer()
+        self.CompareResults()
 
+    def CompareResults(self):
+        for x in range(10):
+            print(f"Predicted: {self.result[x]} Actual: {self.TrainY[x]}")
+        
+class Layer:
+    def __init__(self, NoOfInputs, NoOfNeurons, activation):
+        self.weights = 0.01 * np.random.randn(NoOfInputs, NoOfNeurons)
+        self.biases = np.zeros((1, NoOfNeurons))
+        self.activation = activation
 
-    def NextDataset(self):
-        self.currentDataset += 1
+    def forward(self, inputs):
+        self.output = np.dot(inputs, self.weights) + self.biases
+        print(self.output)
+        self.applyActivation()
 
+    def applyActivation(self):
+        self.output = self.activation.forward(self.output)
 
-class NeuralLayer:
-    def __init__(self, NoOfInputs, NoOfNeurons):
-        self.weights = 0.01 
-        self.bias = []
+class ReLU:
+    def forward(self, inputs):
+        return np.maximum(0, inputs)
 
-    def ForwardPropagation(self, inputs):
-        # dot product
-        pass
+class Softmax:
+    def forward(self, inputs):
+        exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
 
-    def BackPropagation(self):
-        raise NotImplementedError
+        probabilites = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+
+        return probabilites

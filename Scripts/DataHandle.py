@@ -1,7 +1,7 @@
 import csv, random
 
 class PreProcess:
-    def __init__(self, NumOfDatasets, path=r"DataSet\HomeLoanTrain.csv"):
+    def __init__(self, NumOfDatasets, path=r"DataSet/HomeLoanTrain.csv"):
         #Initial DataHolders
         self.Dataset = DataMethod.CsvToArray(path, NumOfDatasets)
         self.TrainX = []
@@ -16,7 +16,7 @@ class PreProcess:
 
         #self.Display()
 
-    def Display(self):
+    def Display(self):        
         print("\nTraining Data")
         for row in list(zip(self.TrainX, self.TrainY)):
             print(row)
@@ -24,6 +24,10 @@ class PreProcess:
         print("\nTesting Data")
         for row in list(zip(self.TestX, self.TestY)):
             print(row)
+
+        Y = self.FeatureDict[-1]["Y"]
+        N = self.FeatureDict[-1]["N"]
+        print(f"Yes: {Y} No: {N}")
 
     def CleanData(self):
         FeatureColumns = DataMethod.Transpose(self.Dataset)
@@ -47,7 +51,7 @@ class PreProcess:
                 val = 0
                 for RowIndex, element in enumerate(features):
                     if element not in FeatureDict.keys():
-                        FeatureDict[element] = val 
+                        FeatureDict[element.strip()] = val 
                         val += 1 
                     features[RowIndex] = float(FeatureDict[element])
                 CategoricalFeatureKeys.append(FeatureDict)
@@ -75,6 +79,9 @@ class PreProcess:
         TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
         return TestX, TestY
 
+    def getData(self):
+        return self.TrainX, self.TrainY, self.TestX, self.TestY
+
     
 class DataMethod:
     @staticmethod
@@ -98,4 +105,11 @@ class DataMethod:
             TransposedArray.append([array[x][y] for x in range(len(array))])
         
         return TransposedArray
+
+    def DotProduct(arr1, arr2, iteration=1):
+        results = []
+        for x in range(iteration):
+            results.append([sum(x) for x in zip(arr1[x], arr2[x])])
+
+        return results
     

@@ -1,0 +1,5 @@
+Initial_Inputs = (80x11) 80 rows of 11 elements
+    entry = (1x11)
+
+Layer_One_Weights = (11x7)
+    

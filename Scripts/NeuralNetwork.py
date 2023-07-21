@@ -1,4 +1,5 @@
 import numpy as np
+
 from DataHandle import *
 
 class NeuralNetwork:
@@ -17,6 +18,7 @@ class NeuralNetwork:
 
         self.CompareResults()
 
+
     def CompareResults(self):
         for x in range(10):
             print(f"Predicted: {self.result[x]} Actual: {self.TrainY[x]}")
@@ -24,12 +26,18 @@ class NeuralNetwork:
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
         self.weights = 0.01 * np.random.randn(NoOfInputs, NoOfNeurons)
-        self.biases = np.zeros((1, NoOfNeurons))
+        print(self.weights.shape)
+        self.biases = [0 for x in range(NoOfNeurons)]
         self.activation = activation
 
+        self.output = []
+
     def forward(self, inputs):
-        self.output = np.dot(inputs, self.weights) + self.biases
-        print(self.output)
+        for entry in inputs:
+            self.output.append([DataMethod.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DataMethod.Transpose(self.weights))])  # (1x11) dot (1x11)
+
+        self.outputs = np.dot(inputs, self.weights) + self.biases
+
         self.applyActivation()
 
     def applyActivation(self):
@@ -37,7 +45,11 @@ class Layer:
 
 class ReLU:
     def forward(self, inputs):
-        return np.maximum(0, inputs)
+        for rowIndex, entry in enumerate(inputs):
+            for index, element in enumerate(entry):
+                if element < 0:
+                    inputs[rowIndex][index] = 0
+        return inputs
 
 class Softmax:
     def forward(self, inputs):

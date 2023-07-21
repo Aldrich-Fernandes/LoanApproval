@@ -1,19 +1,51 @@
-        CategoricalFeatures = {name: {} for name in FeatureNames}
-        FeatureColumns = DataMethod.Transpose(self.Dataset)
-        print(FeatureColumns)
-        for index, features in enumerate(FeatureColumns): # for each column
-            try: # For intergers
-                FeatureColumns[index] = list(map(int, features)) # turn string to int
-            except: # for strings  ###Instead could use hex values
-                uniqueStrings = {}  #store these
-                val = 0
-                for featureIndex, uniqueString in enumerate(features): # each element in the column
-                    if uniqueString not in uniqueStrings.keys(): # If it is a new element
-                        uniqueStrings[uniqueString] = val
-                        val += 1
-                    
-                    features[featureIndex] = uniqueStrings[uniqueString]
-                    featureIndex += 1
-                CategoricalFeatures[FeatureNames] = uniqueStrings
-        self.Dataset = DataMethod.Transpose(FeatureColumns)
-        print(CategoricalFeatures)
+import numpy as np
+
+from DataHandle import *
+
+class NeuralNetwork:
+    def __init__(self):
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(100).getData()
+        self.train()
+        
+    def train(self):
+        Hiddenlayer = Layer(11, 7, ReLU())
+        Outputlayer = Layer(7, 2, Softmax())
+
+        Hiddenlayer.forward(self.TrainX)
+        Outputlayer.forward(Hiddenlayer.output)
+        
+        self.result = Outputlayer.output
+
+        self.CompareResults()
+
+    def CompareResults(self):
+        for x in range(10):
+            print(f"Predicted: {self.result[x]} Actual: {self.TrainY[x]}")
+        
+class Layer:
+    def __init__(self, NoOfInputs, NoOfNeurons, activation):
+        self.weights = 0.01 * np.random.randn(NoOfInputs, NoOfNeurons)
+        self.biases = np.zeros((1, NoOfNeurons))
+        self.activation = activation
+
+        print(f"Weights: {self.weights.shape} \nBiases: {self.biases.shape}")
+        input()
+
+    def forward(self, inputs):
+        self.output = np.dot(inputs, self.weights) + self.biases
+        self.applyActivation()
+
+    def applyActivation(self):
+        self.output = self.activation.forward(self.output)
+
+class ReLU:
+    def forward(self, inputs):
+        return np.maximum(0, inputs)
+
+class Softmax:
+    def forward(self, inputs):
+        exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
+
+        probabilites = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+
+        return probabilites

@@ -106,10 +106,7 @@ class DataMethod:
         
         return TransposedArray
 
-    def DotProduct(arr1, arr2, iteration=1):
-        results = []
-        for x in range(iteration):
-            results.append([sum(x) for x in zip(arr1[x], arr2[x])])
-
-        return results
-    
+    def DotProduct(arr1, arr2):
+        result = sum([x*y for x,y in zip(arr1, arr2)])
+        
+        return round(result, 8)

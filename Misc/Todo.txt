@@ -1,3 +1,20 @@
+First Complete NeuralNetwork
+Then redo code replacing the numpy modules with own wrttien ones
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 handle Outliers ... 1.5(IQR) beyond the LB/UB
 
 

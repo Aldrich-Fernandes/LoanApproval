@@ -8,8 +8,9 @@ class PreProcess:
         self.TrainY = []
         
         #Dealing with categorical data
-        self.FeatureNames = self.Dataset.pop(0)    
+        self.FeatureNames = self.Dataset.pop(0)   
         self.FeatureDict = self.CleanData()
+
 
         # Spliiting for Training data
         self.TestX, self.TestY = self.SplitData()
@@ -42,19 +43,18 @@ class PreProcess:
         return CategoricalFeatureKeys
     
     def CreateFeatureColumns(self, FeatureColumns):
-        CategoricalFeatureKeys = []
-        for index, features in enumerate(FeatureColumns): # for each column
-            try: # For decimals
-                FeatureColumns[index] = list(map(float, features)) # turn string to float
-            except: # for strings  
-                FeatureDict = {}
-                val = 0
-                for RowIndex, element in enumerate(features):
-                    if element not in FeatureDict.keys():
-                        FeatureDict[element.strip()] = val 
-                        val += 1 
-                    features[RowIndex] = float(FeatureDict[element])
-                CategoricalFeatureKeys.append(FeatureDict)
+        CategoricalFeatureKeys = {"Y": 1, 
+                                  "N": 0}
+        for ColumnIndex, features in enumerate(FeatureColumns): # for each column
+            for ElementIndex, element in enumerate(features):
+                try:
+                    FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+                except ValueError:
+                    if element not in CategoricalFeatureKeys.keys():
+                        CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
+                    
+                    FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
+
         return FeatureColumns, CategoricalFeatureKeys
     
     def ReplaceMissingVals(self, FeatureColumns):

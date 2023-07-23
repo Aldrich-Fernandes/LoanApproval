@@ -3,7 +3,7 @@ Then redo code replacing the numpy modules with own wrttien ones
 
 
 
-
+Errors where numbers are treated as categorical in CreateFeatureColumns
 
 
 

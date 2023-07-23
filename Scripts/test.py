@@ -1,7 +1,4 @@
-from DataHandle import DataMethod
-import numpy as np
+a = {"Y" and "Yes": 1, 
+     "N" and "No": 0}
 
-a = np.random.randn(11, 7)
-b = np.random.randn(1, 11)
-
-DataMethod.DotProduct(a, DataMethod.Transpose(b))
+print(a["Yes"])

@@ -18,15 +18,14 @@ class NeuralNetwork:
 
         self.CompareResults()
 
-
     def CompareResults(self):
-        for x in range(10):
+        for i in range(20):
+            x = random.randint(0,79)
             print(f"Predicted: {self.result[x]} Actual: {self.TrainY[x]}")
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
         self.weights = 0.01 * np.random.randn(NoOfInputs, NoOfNeurons)
-        print(self.weights.shape)
         self.biases = [0 for x in range(NoOfNeurons)]
         self.activation = activation
 

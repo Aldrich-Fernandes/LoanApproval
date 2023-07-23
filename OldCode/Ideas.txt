@@ -1,0 +1,12 @@
+def CreateFeatureColumns(self, FeatureColumns):
+    CategoricalFeatureKeys = {"Y": 1, "N": 0}
+    for ColumnIndex, features in enumerate(FeatureColumns): # for each column
+        for ElementIndex, element in enumerate(features):
+            try:
+                FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+            except ValueError:
+                if element not in CategoricalFeatureKeys.keys():
+                    CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element])
+                else:
+                    FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
+    return FeatureColumns, CategoricalFeatureKeys

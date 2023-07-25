@@ -43,8 +43,8 @@ class PreProcess:
         return CategoricalFeatureKeys
     
     def CreateFeatureColumns(self, FeatureColumns):
-        CategoricalFeatureKeys = {"Y": 1, 
-                                  "N": 0}
+        CategoricalFeatureKeys = {"Y" or "Yes" or "Male" or "Graduate": 1, 
+                                  "N" or "No" or "Female" or "Not Graduate": 0}
         for ColumnIndex, features in enumerate(FeatureColumns): # for each column
             for ElementIndex, element in enumerate(features):
                 try:
@@ -54,7 +54,6 @@ class PreProcess:
                         CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     
                     FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
-
         return FeatureColumns, CategoricalFeatureKeys
     
     def ReplaceMissingVals(self, FeatureColumns):

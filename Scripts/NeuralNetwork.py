@@ -1,4 +1,5 @@
 import numpy as np
+from math import exp
 
 from DataHandle import *
 
@@ -9,7 +10,7 @@ class NeuralNetwork:
         
     def train(self):
         Hiddenlayer = Layer(11, 7, ReLU())
-        Outputlayer = Layer(7, 2, Softmax())
+        Outputlayer = Layer(7, 1, Sigmoid())
 
         Hiddenlayer.forward(self.TrainX)
         Outputlayer.forward(Hiddenlayer.output)
@@ -21,7 +22,7 @@ class NeuralNetwork:
     def CompareResults(self):
         for i in range(20):
             x = random.randint(0,79)
-            print(f"Predicted: {self.result[x]} Actual: {self.TrainY[x]}")
+            print(f"Predicted: {round(self.result[x])} Actual: {self.TrainY[x]}")
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
@@ -35,13 +36,12 @@ class Layer:
         for entry in inputs:
             self.output.append([DataMethod.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DataMethod.Transpose(self.weights))])  # (1x11) dot (1x11)
 
-        self.outputs = np.dot(inputs, self.weights) + self.biases
-
         self.applyActivation()
 
     def applyActivation(self):
         self.output = self.activation.forward(self.output)
 
+#Activations
 class ReLU:
     def forward(self, inputs):
         for rowIndex, entry in enumerate(inputs):
@@ -55,5 +55,11 @@ class Softmax:
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
 
         probabilites = exp_values / np.sum(exp_values, axis=1, keepdims=True)
-
+        
         return probabilites
+
+class Sigmoid:
+    def forward(self, inputs):
+
+        return [round((1 / (1 + exp(-Val[0]))), 8) for Val in inputs]
+        

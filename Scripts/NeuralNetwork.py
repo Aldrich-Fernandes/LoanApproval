@@ -22,7 +22,7 @@ class NeuralNetwork:
     def CompareResults(self):
         for i in range(20):
             x = random.randint(0,79)
-            print(f"Predicted: {round(self.result[x])} Actual: {self.TrainY[x]}")
+            print(f"Predicted: {round(self.result[x], 8)} Actual: {self.TrainY[x]}")
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
@@ -36,6 +36,7 @@ class Layer:
         for entry in inputs:
             self.output.append([DataMethod.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DataMethod.Transpose(self.weights))])  # (1x11) dot (1x11)
 
+        #self.output = [[round(sum([x*y for x,y in zip(entry, WeightsForNeuron)]), 8) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate([[self.weights[x][y] for x in range(len(self.weights))] for y in range(len(self.weights[0]))])] for entry in inputs]
         self.applyActivation()
 
     def applyActivation(self):

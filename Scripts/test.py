@@ -1,0 +1,1 @@
+self.output = [[round(sum([x*y for x,y in zip(entry, WeightsForNeuron)]), 8) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate([[self.weights[x][y] for x in range(len(self.weights))] for y in range(len(self.weights[0]))])] for entry in inputs]

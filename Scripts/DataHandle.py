@@ -81,7 +81,6 @@ class PreProcess:
     def getData(self):
         return self.TrainX, self.TrainY, self.TestX, self.TestY
 
-    
 class DataMethod:
     @staticmethod
     def CsvToArray(path, NumOfDatasets): # loads all data then picks the a random chunk.
@@ -99,13 +98,8 @@ class DataMethod:
 
     @staticmethod
     def Transpose(array):
-        TransposedArray = []
-        for y in range(len(array[0])):
-            TransposedArray.append([array[x][y] for x in range(len(array))])
-        
-        return TransposedArray
-
+        return [[array[x][y] for x in range(len(array))] for y in range(len(array[0]))]
+    
+    @staticmethod
     def DotProduct(arr1, arr2):
-        result = sum([x*y for x,y in zip(arr1, arr2)])
-        
-        return round(result, 8)
+        return round(sum([x*y for x,y in zip(arr1, arr2)]), 8)

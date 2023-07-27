@@ -17,7 +17,11 @@ class NeuralNetwork:
         
         self.result = Outputlayer.output
 
+        BinaryLoss = BinaryCrossEntropy()
+        Loss = BinaryLoss.calculate(self.result, self.TrainY)
+
         self.CompareResults()
+        print("Loss: " + Loss)
 
     def CompareResults(self):
         for i in range(20):
@@ -54,13 +58,33 @@ class ReLU:
 class Softmax:
     def forward(self, inputs):
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
-
         probabilites = exp_values / np.sum(exp_values, axis=1, keepdims=True)
-        
         return probabilites
 
 class Sigmoid:
     def forward(self, inputs):
-
         return [round((1 / (1 + exp(-Val[0]))), 8) for Val in inputs]
         
+# Loss
+class Loss:
+    def calculate(self, output, y):
+        SampleLosses = self.forward(output, y)
+
+        DataLoss = np.mean(SampleLosses)
+
+        return DataLoss
+
+class BinaryCrossEntropy(Loss):
+    def forward(self, predictions, TrueVals):
+        # Remove any 0s or 1s to avoid arithmethic errors
+        for index, val in enumerate(predictions):
+            if val < 1e-7:
+                predictions[index] = 1e-7
+            elif val > 1- 1e-7:
+                predictions[index] = 1 - 1e-7
+
+        SampleLoss = -(TrueVals * np.log(predictions) +
+                       (1 - TrueVals) * np.log(1 - predictions))
+        SampleLoss = np.mean(SampleLoss, axis=-1)
+
+        return SampleLoss

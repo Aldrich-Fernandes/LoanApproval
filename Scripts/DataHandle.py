@@ -103,3 +103,7 @@ class DataMethod:
     @staticmethod
     def DotProduct(arr1, arr2):
         return round(sum([x*y for x,y in zip(arr1, arr2)]), 8)
+    
+    @staticmethod
+    def Multiply(arr1, arr2):
+        return [round(a*b, 8) for a,b in zip(arr1, arr2)]

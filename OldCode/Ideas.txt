@@ -10,3 +10,38 @@ def CreateFeatureColumns(self, FeatureColumns):
                 else:
                     FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
     return FeatureColumns, CategoricalFeatureKeys
+
+
+def CreateFeatureColumns(self, FeatureColumns):
+    CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
+                                "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
+                                "Rural": 2, "3+": 2}
+    for ColumnIndex, features in enumerate(FeatureColumns): # for each column
+        for ElementIndex, element in enumerate(features):
+            if element in CategoricalFeatureKeys.keys():
+                FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[element]
+            else:
+                FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+    return FeatureColumns, CategoricalFeatureKeys
+
+
+def CreateFeatureColumns(self, FeatureColumns):
+    CategoricalFeatureKeys = {"Y" or "Yes" or "Male" or "Graduate": 1, 
+                                "N" or "No" or "Female" or "Not Graduate": 0}
+    for ColumnIndex, features in enumerate(FeatureColumns): # for each column
+        for ElementIndex, element in enumerate(features):
+            try:
+                FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+            except ValueError:
+                if element not in CategoricalFeatureKeys.keys():
+                    CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
+                
+                FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
+    return FeatureColumns, CategoricalFeatureKeys
+
+
+Check random elemnt if it is a letter or number:
+    if element[0] in '1234567890':
+        ...
+    elif:
+        CategoricalFeatureKeys ... 

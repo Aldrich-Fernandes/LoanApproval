@@ -1,3 +1,9 @@
-a = [1, 2, 3, 4]
+from DataHandle import DataMethod as DP
 
-print(4 * a)
+a = [["A1", "A2", "A3"],
+     ["B1", "B2", "B3"]]
+
+for row in a:
+    row[0] = "XX"
+
+print(a)

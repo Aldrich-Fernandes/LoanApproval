@@ -1,9 +1,12 @@
 import csv, random
 
 class PreProcess:
-    def __init__(self, NumOfDatasets, path=r"DataSet/HomeLoanTrain.csv"):
+    def __init__(self, NumOfDatasets):
         #Initial DataHolders
-        self.Dataset = DataMethod.CsvToArray(path, NumOfDatasets)
+        self.Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv", NumOfDatasets)
+        self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
+                                    "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
+                                    "Rural": 2, "3+": 2}
         self.TrainX = []
         self.TrainY = []
         
@@ -13,8 +16,7 @@ class PreProcess:
 
 
         # Spliiting for Training data
-        self.TestX, self.TestY = self.SplitData()
-
+        self.TestX, self.TestY = self.SplitData(percent=0.1)
         #self.Display()
 
     def Display(self):        
@@ -35,45 +37,46 @@ class PreProcess:
 
         FeatureColumns = self.ReplaceMissingVals(FeatureColumns)
         
-        FeatureColumns, CategoricalFeatureKeys = self.CreateFeatureColumns(FeatureColumns)
+        FeatureColumns = self.CreateFeatureColumns(FeatureColumns)
 
         self.TrainY = FeatureColumns.pop()
 
         self.TrainX = DataMethod.Transpose(FeatureColumns)
-        return CategoricalFeatureKeys
     
-    def CreateFeatureColumns(self, FeatureColumns):
-        CategoricalFeatureKeys = {"Y" or "Yes" or "Male" or "Graduate": 1, 
-                                  "N" or "No" or "Female" or "Not Graduate": 0}
+    def CreateFeatureColumns(self, FeatureColumns): #############################    Broken
+        
         for ColumnIndex, features in enumerate(FeatureColumns): # for each column
             for ElementIndex, element in enumerate(features):
                 try:
                     FeatureColumns[ColumnIndex][ElementIndex] = float(element)
                 except ValueError:
-                    if element not in CategoricalFeatureKeys.keys():
-                        CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
+                    if element not in self.CategoricalFeatureKeys.keys():
+                        self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     
-                    FeatureColumns[ColumnIndex][ElementIndex] = CategoricalFeatureKeys[str(element)]
-        return FeatureColumns, CategoricalFeatureKeys
-    
-    def ReplaceMissingVals(self, FeatureColumns):
-
-        for Column in FeatureColumns: # Selects the most common / mean input
-            try:
-                Column = list(map(float, Column))
-                ReplacementData = sum(Column)/len(Column)                    
-            except: 
-                ReplacementData = max(set(Column), key = Column.count)
-
-            #Updates the missing vals in the column
-            for index, element in enumerate(Column):
-                if element == "":
-                    Column[index] = ReplacementData
+                    FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
             
         return FeatureColumns
     
-    def SplitData(self): # 80-20
-        NumOfTrainData = round(len(self.TrainX) * 0.2)
+    def ReplaceMissingVals(self, FeatureColumns): #############################    Broken
+        Numbers = '1234567890'
+        for Column in FeatureColumns: # Selects the most common / mean input
+            TestElement = ""
+            while TestElement == "":
+                TestElement = Column[random.randint(0, len(Column)-1)]
+
+            if TestElement[0] in Numbers and '3+' not in Column:
+                FloatVals = [float(x) for x in Column if x != ""]
+                ReplacementData = round(sum(FloatVals)/len(FloatVals))
+            else:
+                ReplacementData = max(set(Column), key = Column.count)
+            
+            for index, element in enumerate(Column):
+                if element == "":
+                    Column[index] = ReplacementData
+        return FeatureColumns
+    
+    def SplitData(self, percent=0.2): # 80-20
+        NumOfTrainData = round(len(self.TrainX) * percent)
         TestX = [self.TrainX.pop() for i in range(NumOfTrainData)]
         TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
         return TestX, TestY
@@ -107,3 +110,4 @@ class DataMethod:
     @staticmethod
     def Multiply(arr1, arr2):
         return [round(a*b, 8) for a,b in zip(arr1, arr2)]
+

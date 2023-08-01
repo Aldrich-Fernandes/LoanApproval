@@ -7,18 +7,20 @@ DM = DataMethod()
 
 class NeuralNetwork:
     def __init__(self):
-        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(100).getData()
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=610).getData() # max 614
         self.Loss = 0.0
         self.Accuracy = 0.0
         self.train()
         
     def train(self):
         #Create Network
-        Hiddenlayer = Layer(11, 7, ReLU())
-        Outputlayer = Layer(7, 1, Sigmoid())
+        Hiddenlayer1 = Layer(11, 7, ReLU())
+        Hiddenlayer2 = Layer(7, 4, ReLU())
+        Outputlayer = Layer(4, 1, Sigmoid())
 
-        Hiddenlayer.forward(self.TrainX)
-        Outputlayer.forward(Hiddenlayer.output)
+        Hiddenlayer1.forward(self.TrainX)
+        Hiddenlayer2.forward(Hiddenlayer1.output)
+        Outputlayer.forward(Hiddenlayer2.output)
         
         self.result = Outputlayer.output
 
@@ -27,13 +29,13 @@ class NeuralNetwork:
         self.Loss = BinaryLoss.calculate(self.result, self.TrainY)
 
         self.UpdateAccuracy()
-        self.CompareResults()
+        self.DisplayResults()
 
-    def CompareResults(self):
+    def DisplayResults(self):
         for i in range(10):
             x = random.randint(0,79)
             print(f"Predicted: {round(self.result[x], 8)} Actual: {self.TrainY[x]}")
-        print(f"Loss: {self.Loss} \nAccuracy: {self.Accuracy}")
+        print(f"Loss: {self.Loss} \nAccuracy: {self.Accuracy}\n\n")
 
     def UpdateAccuracy(self):
         self.Accuracy = sum([1 for x,y in zip(self.result, self.TrainY) if round(x)==y]) / len(self.result)
@@ -93,7 +95,6 @@ class BinaryCrossEntropy(Loss):
                 predictions[index] = 0.0000001
             elif val > 1- 1e-7:
                 predictions[index] = 0.9999999
-
 
         SampleLoss = [-(val1+val2) for val1, val2 in zip(DM.Multiply(TrueVals, [log(x) for x in predictions]), 
                                                         DM.Multiply([1-x for x in TrueVals], [log(1-x) for x in predictions]))]

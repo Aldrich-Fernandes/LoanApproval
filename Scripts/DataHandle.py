@@ -75,7 +75,7 @@ class PreProcess:
                     Column[index] = ReplacementData
         return FeatureColumns
     
-    def SplitData(self, percent=0.2): # 80-20
+    def SplitData(self, percent=0.1): # 80-20
         NumOfTrainData = round(len(self.TrainX) * percent)
         TestX = [self.TrainX.pop() for i in range(NumOfTrainData)]
         TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
@@ -105,9 +105,8 @@ class DataMethod:
     
     @staticmethod
     def DotProduct(arr1, arr2):
-        return round(sum([x*y for x,y in zip(arr1, arr2)]), 8)
+        return round(sum([x*y for x,y in zip(arr1, arr2)]), 16)
     
     @staticmethod
     def Multiply(arr1, arr2):
-        return [round(a*b, 8) for a,b in zip(arr1, arr2)]
-
+        return [round(a*b, 16) for a,b in zip(arr1, arr2)]

@@ -1,9 +1,8 @@
-from DataHandle import DataMethod as DP
+import numpy as np
 
-a = [["A1", "A2", "A3"],
-     ["B1", "B2", "B3"]]
+a = [0,0,0,0,0]
 
-for row in a:
-    row[0] = "XX"
+
+a += 0.05 * np.random.randn(1, 5)
 
 print(a)

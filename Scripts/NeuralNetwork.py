@@ -2,12 +2,13 @@ import numpy as np
 from math import exp, log
 
 from DataHandle import *
+from ActivationAndLoss import *
 
 DM = DataMethod()
 
 class NeuralNetwork:
     def __init__(self):
-        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=610).getData() # max 614
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=300).getData() # max 614
         self.Loss = 0.0
         self.Accuracy = 0.0
         self.train()
@@ -18,32 +19,71 @@ class NeuralNetwork:
         Hiddenlayer2 = Layer(7, 4, ReLU())
         Outputlayer = Layer(4, 1, Sigmoid())
 
-        Hiddenlayer1.forward(self.TrainX)
-        Hiddenlayer2.forward(Hiddenlayer1.output)
-        Outputlayer.forward(Hiddenlayer2.output)
-        
-        self.result = Outputlayer.output
-
-        # Initail Loss         
         BinaryLoss = BinaryCrossEntropy()
-        self.Loss = BinaryLoss.calculate(self.result, self.TrainY)
 
-        self.UpdateAccuracy()
-        self.DisplayResults()
+        # Best Vals
+        LowestLoss = 9999999
+        BestWeight_H1 = Hiddenlayer1.weights.copy()
+        BestBiases_H1 = Hiddenlayer1.biases.copy()
 
-    def DisplayResults(self):
-        for i in range(10):
-            x = random.randint(0,79)
-            print(f"Predicted: {round(self.result[x], 8)} Actual: {self.TrainY[x]}")
-        print(f"Loss: {self.Loss} \nAccuracy: {self.Accuracy}\n\n")
+        BestWeight_H2 = Hiddenlayer2.weights.copy()
+        BestBiases_H2 = Hiddenlayer2.biases.copy()
 
-    def UpdateAccuracy(self):
-        self.Accuracy = sum([1 for x,y in zip(self.result, self.TrainY) if round(x)==y]) / len(self.result)
+        BestWeight_O = Outputlayer.weights.copy()
+        BestBiases_O = Outputlayer.biases.copy()
+
+        # Epochs
+        for iteration in range(10000):
+        
+            Hiddenlayer1.incrementVals()
+            Hiddenlayer2.incrementVals()
+            Outputlayer.incrementVals()
+
+            Hiddenlayer1.forward(self.TrainX)
+            Hiddenlayer2.forward(Hiddenlayer1.output)
+            Outputlayer.forward(Hiddenlayer2.output)
+
+            result = Outputlayer.output    
+            
+            self.Loss = BinaryLoss.calculate(Outputlayer.output, self.TrainY)
+            self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
+            
+            if self.Loss < LowestLoss:
+                self.DisplayResults(result, iteration)
+
+                BestWeight_H1 = Hiddenlayer1.weights.copy()
+                BestBiases_H1 = Hiddenlayer1.biases.copy()
+
+                BestWeight_H2 = Hiddenlayer2.weights.copy()
+                BestBiases_H2 = Hiddenlayer2.biases.copy()
+
+                BestWeight_O = Outputlayer.weights.copy()
+                BestBiases_O = Outputlayer.biases.copy()
+
+                LowestLoss = self.Loss
+            else:
+                Hiddenlayer1.weights = BestWeight_H1.copy()
+                Hiddenlayer1.biases = BestBiases_H1.copy()
+
+                Hiddenlayer2.weights = BestWeight_H2.copy()
+                Hiddenlayer2.biases = BestBiases_H2.copy()
+
+                Outputlayer.weights = BestWeight_O.copy()
+                Outputlayer.biases = BestBiases_O.copy()
+
+
+    def DisplayResults(self, result, iteration):
+        print(f"Iteration: {iteration} Loss: {round(self.Loss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
+        
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
-        self.weights = 0.01 * np.random.randn(NoOfInputs, NoOfNeurons)
-        self.biases = [0 for x in range(NoOfNeurons)]
+        self.NoOfInputs = NoOfInputs
+        self.NoOfNeurons = NoOfNeurons
+        self.weights =[DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, self.NoOfNeurons).tolist()[0])
+                       for sample in range(self.NoOfInputs)]
+    
+        self.biases = [0.0 for x in range(NoOfNeurons)]
         self.activation = activation
 
         self.output = []
@@ -59,45 +99,9 @@ class Layer:
     def applyActivation(self):
         self.output = self.activation.forward(self.output)
 
-#Activations
-class ReLU:
-    def forward(self, inputs):
-        for rowIndex, entry in enumerate(inputs):
-            for index, element in enumerate(entry):
-                if element < 0:
-                    inputs[rowIndex][index] = 0
-        return inputs
+    def incrementVals(self, multiplier=0.05):
+        self.weights += multiplier * np.random.randn(self.NoOfInputs, self.NoOfNeurons)
+        self.biases = [a+b for a,b in zip(self.biases, DM.Multiply([multiplier for x in range(self.NoOfNeurons)], 
+                                                                   np.random.randn(1, self.NoOfNeurons).tolist()[0]))]
 
-class Softmax:
-    def forward(self, inputs):
-        exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
-        probabilites = exp_values / np.sum(exp_values, axis=1, keepdims=True)
-        return probabilites
 
-class Sigmoid:
-    def forward(self, inputs):
-        return [round((1 / (1 + exp(-Val[0]))), 8) for Val in inputs]
-        
-# Loss
-class Loss:
-    def calculate(self, output, y):
-        SampleLosses = self.forward(output, y)
-
-        DataLoss = np.mean(SampleLosses)
-
-        return DataLoss
-
-class BinaryCrossEntropy(Loss):
-    def forward(self, predictions, TrueVals):
-        # Remove any 0s or 1s to avoid arithmethic errors
-        for index, val in enumerate(predictions):
-            if val < 1e-7:
-                predictions[index] = 0.0000001
-            elif val > 1- 1e-7:
-                predictions[index] = 0.9999999
-
-        SampleLoss = [-(val1+val2) for val1, val2 in zip(DM.Multiply(TrueVals, [log(x) for x in predictions]), 
-                                                        DM.Multiply([1-x for x in TrueVals], [log(1-x) for x in predictions]))]
-        SampleLoss = np.mean(SampleLoss, axis=-1)
-
-        return SampleLoss

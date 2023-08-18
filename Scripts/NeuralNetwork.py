@@ -2,18 +2,20 @@ import numpy as np
 from math import exp, log
 
 from DataHandle import *
-from ActivationAndLoss import *
+from ActivationLossAndOptimizers import *
 
 DM = DataMethod()
 
 class NeuralNetwork:
     def __init__(self):
-        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=300).getData() # max 614
-        self.Loss = 0.0
-        self.Accuracy = 0.0
         self.train()
         
     def train(self):
+        # Important Values
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=300).getData() # max 614
+        self.Loss = 0.0
+        self.Accuracy = 0.0
+
         #Create Network
         Hiddenlayer1 = Layer(11, 7, ReLU())
         Hiddenlayer2 = Layer(7, 4, ReLU())
@@ -21,8 +23,10 @@ class NeuralNetwork:
 
         BinaryLoss = BinaryCrossEntropy()
 
-        # Best Vals
+        # Training Values
         LowestLoss = 9999999
+        Epochs = 10000
+
         BestWeight_H1 = Hiddenlayer1.weights.copy()
         BestBiases_H1 = Hiddenlayer1.biases.copy()
 
@@ -33,7 +37,7 @@ class NeuralNetwork:
         BestBiases_O = Outputlayer.biases.copy()
 
         # Epochs
-        for iteration in range(10000):
+        for iteration in range(Epochs):
         
             Hiddenlayer1.incrementVals()
             Hiddenlayer2.incrementVals()
@@ -49,7 +53,7 @@ class NeuralNetwork:
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
             
             if self.Loss < LowestLoss:
-                self.DisplayResults(result, iteration)
+                self.DisplayResults(iteration)
 
                 BestWeight_H1 = Hiddenlayer1.weights.copy()
                 BestBiases_H1 = Hiddenlayer1.biases.copy()
@@ -71,16 +75,20 @@ class NeuralNetwork:
                 Outputlayer.weights = BestWeight_O.copy()
                 Outputlayer.biases = BestBiases_O.copy()
 
-
-    def DisplayResults(self, result, iteration):
+    def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.Loss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
-        
+
+    def SaveModel(self): ## Saves Best Weights, Biases and categorical Feature key into a txt file
+        pass
+
+    def LoadModel(self): ## Loads Best Weights and Biases from txt file
+        pass
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
         self.NoOfInputs = NoOfInputs
         self.NoOfNeurons = NoOfNeurons
-        self.weights =[DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, self.NoOfNeurons).tolist()[0])
+        self.weights = [DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, self.NoOfNeurons).tolist()[0])
                        for sample in range(self.NoOfInputs)]
     
         self.biases = [0.0 for x in range(NoOfNeurons)]

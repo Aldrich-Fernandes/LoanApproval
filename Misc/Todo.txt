@@ -1,25 +1,8 @@
-First Complete NeuralNetwork
-Then redo code replacing the numpy modules with own wrttien ones
-
-
 
 Errors where numbers are treated as categorical in CreateFeatureColumns
-
-
-
-
-
-
-
-
-
 
 
 handle Outliers ... 1.5(IQR) beyond the LB/UB
 
 
-Edit PreProcess into 4 Datasets 
-    - XTrain
-    - YTrain
-    - XTest
-    - YTrain
+Handle skewed samples.

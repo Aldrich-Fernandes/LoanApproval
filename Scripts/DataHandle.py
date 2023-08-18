@@ -7,13 +7,10 @@ class PreProcess:
         self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
                                     "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
                                     "Rural": 2, "3+": 2}
-        self.TrainX = []
-        self.TrainY = []
         
         #Dealing with categorical data
-        self.FeatureNames = self.Dataset.pop(0)   
+        self.FeatureNames = self.Dataset.pop(0)
         self.FeatureDict = self.CleanData()
-
 
         # Spliiting for Training data
         self.TestX, self.TestY = self.SplitData(percent=0.1)
@@ -27,10 +24,6 @@ class PreProcess:
         print("\nTesting Data")
         for row in list(zip(self.TestX, self.TestY)):
             print(row)
-
-        Y = self.FeatureDict[-1]["Y"]
-        N = self.FeatureDict[-1]["N"]
-        print(f"Yes: {Y} No: {N}")
 
     def CleanData(self):
         FeatureColumns = DataMethod.Transpose(self.Dataset)
@@ -83,6 +76,12 @@ class PreProcess:
 
     def getData(self):
         return self.TrainX, self.TrainY, self.TestX, self.TestY
+
+    def saveData(self):
+        FileName = str(input("Enter File Name"))
+
+    def loadData(self):
+        pass
 
 class DataMethod:
     @staticmethod

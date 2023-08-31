@@ -1,32 +1,37 @@
 import csv, random
 
 class PreProcess:
-    def __init__(self, NumOfDatasets):
+    def __init__(self, NumOfDatasets, mode="Load"):
         #Initial DataHolders
-        self.Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv", NumOfDatasets)
+        self.NumOfDatasets = NumOfDatasets
+        self.mode = mode
+
         self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
                                     "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
                                     "Rural": 2, "3+": 2}
+        self.TrainX = []
+        self.TrainY = []
+
+        self.ChooseMode()
+
+    def ChooseMode(self):
+        if self.mode == "New":
+            self.NewDataset()
+        elif self.mode == "Load":
+            self.LoadData()
+        else:
+            print("Error")
+
+    # Generates and saves a new dataset
+    def NewDataset(self):
+
+        # Extract data
+        Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         
+        Dataset = self.AdjustSkew(Dataset)
         #Dealing with categorical data
-        self.FeatureNames = self.Dataset.pop(0)
-        self.FeatureDict = self.CleanData()
 
-        # Spliiting for Training data
-        self.TestX, self.TestY = self.SplitData(percent=0.1)
-        #self.Display()
-
-    def Display(self):        
-        print("\nTraining Data")
-        for row in list(zip(self.TrainX, self.TrainY)):
-            print(row)
-
-        print("\nTesting Data")
-        for row in list(zip(self.TestX, self.TestY)):
-            print(row)
-
-    def CleanData(self):
-        FeatureColumns = DataMethod.Transpose(self.Dataset)
+        FeatureColumns = DataMethod.Transpose(Dataset)
 
         FeatureColumns = self.ReplaceMissingVals(FeatureColumns)
         
@@ -35,6 +40,9 @@ class PreProcess:
         self.TrainY = FeatureColumns.pop()
 
         self.TrainX = DataMethod.Transpose(FeatureColumns)
+
+        # Saves cleaned data
+        self.SaveData()
     
     def CreateFeatureColumns(self, FeatureColumns): #############################    Broken
         
@@ -74,18 +82,60 @@ class PreProcess:
         TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
         return TestX, TestY
 
+    def AdjustSkew(self, dataset):
+        Ones = 0
+        Zeros = 0
+        index = -1
+        NewDataset = []
+
+        while index < self.NumOfDatasets:
+            index += 1
+            row = dataset[index]
+            if row[-1] == 'Y' and Zeros > Ones: 
+                NewDataset.append(row)
+            elif row[-1] == 'N' and Ones > Zeros:
+                NewDataset.append(row)
+            else:
+                NewDataset.append(row)
+            
+        
+        return NewDataset
+
+    def SaveData(self):
+        FileName = str(input("Save file as: "))
+        with open(f"DataSet/{FileName}.csv", "w", newline="") as file:
+            csvWriter = csv.writer(file)
+            
+            for index, row in enumerate(self.TrainX):
+                row.append(self.TrainY[index])
+                csvWriter.writerow(row)
+
+    # Loads a preProccesed Dataset
+    def LoadData(self):
+        FileName = str(input("Load File: "))
+
+        with open(f"DataSet/{FileName}.csv", "r") as file:
+            csvreader = csv.reader(file)
+            for row in csvreader:
+                self.TrainX.append(list(map(float, row[:-1])))
+                self.TrainY.append(int(row[-1]))
+
+    # Returns Dataset for neural network
     def getData(self):
+        # Spliiting for Training data
+        self.TestX, self.TestY = self.SplitData(percent=0.1)
+
         return self.TrainX, self.TrainY, self.TestX, self.TestY
 
-    def saveData(self):
-        FileName = str(input("Enter File Name"))
-
-    def loadData(self):
-        pass
+    def Display(self):        
+        print("\nTraining Data")
+        for row in list(zip(self.TrainX, self.TrainY)):
+            print(row)
+        
 
 class DataMethod:
     @staticmethod
-    def CsvToArray(path, NumOfDatasets): # loads all data then picks the a random chunk.
+    def CsvToArray(path): # loads all data then picks the a random chunk.
         table = []
         with open(path, "r") as file:
             csvreader = csv.reader(file)
@@ -93,10 +143,10 @@ class DataMethod:
                 table.append(row)
         file.close()
 
-        randomTable = [table.pop(random.randint(1, len(table)-1)) if x!=0 else table.pop(0) for x in range(NumOfDatasets+1)]
-        for index, row in enumerate(randomTable): #removes loan ID from array
-            randomTable[index] = row[1:]
-        return randomTable
+        table.pop(0) # removes feature names
+        for index, row in enumerate(table): #removes loan ID from array
+            table[index] = row[1:]
+        return table
 
     @staticmethod
     def Transpose(array):

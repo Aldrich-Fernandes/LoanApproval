@@ -15,7 +15,7 @@ class ReLU:
 class Sigmoid:
     def forward(self, inputs):
         inputs = list(map(lambda z: z[0], inputs))
-        return [np.exp(val) / (np.exp(val) + 1) for val in inputs]
+        return [1 / (np.exp(-val) + 1) for val in inputs]
 
 # Loss
 class Loss:

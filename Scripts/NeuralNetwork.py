@@ -2,17 +2,14 @@ import numpy as np
 from math import exp, log
 
 from DataHandle import *
-from ActivationLossAndOptimizers import *
+from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy
 
 DM = DataMethod()
 
-class NeuralNetwork:
-    def __init__(self):
-        self.train()
-        
-    def train(self):
+class NeuralNetwork:        
+    def train(self, NumOfDatasets=300):
         # Important Values
-        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets=300).getData() # max 614
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets).getData() # max 614
         self.Loss = 0.0
         self.Accuracy = 0.0
 
@@ -25,7 +22,7 @@ class NeuralNetwork:
 
         # Training Values
         LowestLoss = 9999999
-        Epochs = 10000
+        Epochs = 2000
 
         BestWeight_H1 = Hiddenlayer1.weights.copy()
         BestBiases_H1 = Hiddenlayer1.biases.copy()
@@ -44,12 +41,13 @@ class NeuralNetwork:
             Outputlayer.incrementVals()
 
             Hiddenlayer1.forward(self.TrainX)
-            Hiddenlayer2.forward(Hiddenlayer1.output)
-            Outputlayer.forward(Hiddenlayer2.output)
+            Hiddenlayer2.forward(Hiddenlayer1.ActivatedOutput)
+            Outputlayer.forward(Hiddenlayer2.ActivatedOutput)
 
-            result = Outputlayer.output    
+            result = Outputlayer.ActivatedOutput
             
-            self.Loss = BinaryLoss.calculate(Outputlayer.output, self.TrainY)
+            self.Loss = BinaryLoss.calculate(result, self.TrainY)
+
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
             
             if self.Loss < LowestLoss:
@@ -78,38 +76,30 @@ class NeuralNetwork:
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.Loss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
 
-    def SaveModel(self): ## Saves Best Weights, Biases and categorical Feature key into a txt file
-        pass
-
-    def LoadModel(self): ## Loads Best Weights and Biases from txt file
-        pass
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
-        self.NoOfInputs = NoOfInputs
-        self.NoOfNeurons = NoOfNeurons
-        self.weights = [DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, self.NoOfNeurons).tolist()[0])
-                       for sample in range(self.NoOfInputs)]
+        self.__NoOfInputs = NoOfInputs
+        self.__NoOfNeurons = NoOfNeurons
+        self.weights = [DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, NoOfNeurons).tolist()[0])
+                       for sample in range(NoOfInputs)]
     
         self.biases = [0.0 for x in range(NoOfNeurons)]
         self.activation = activation
 
-        self.output = []
-
     def forward(self, inputs):
         
-        self.output = [[DM.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DM.Transpose(self.weights))] 
+        self.LayerOutput = [[DM.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DM.Transpose(self.weights))] 
                        for entry in inputs]
 
-        #self.output = [[round(sum([x*y for x,y in zip(entry, WeightsForNeuron)]), 8) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate([[self.weights[x][y] for x in range(len(self.weights))] for y in range(len(self.weights[0]))])] for entry in inputs]
         self.applyActivation()
 
     def applyActivation(self):
-        self.output = self.activation.forward(self.output)
+        self.ActivatedOutput = self.activation.forward(self.LayerOutput)
 
     def incrementVals(self, multiplier=0.05):
-        self.weights += multiplier * np.random.randn(self.NoOfInputs, self.NoOfNeurons)
-        self.biases = [a+b for a,b in zip(self.biases, DM.Multiply([multiplier for x in range(self.NoOfNeurons)], 
-                                                                   np.random.randn(1, self.NoOfNeurons).tolist()[0]))]
-
-
+        self.weights += multiplier * np.random.randn(self.__NoOfInputs, self.__NoOfNeurons)
+        self.biases = [a+b for a,b in zip(self.biases, DM.Multiply([multiplier for x in range(self.__NoOfNeurons)], 
+                                                                   np.random.randn(1, self.__NoOfNeurons).tolist()[0]))]
+        
+    

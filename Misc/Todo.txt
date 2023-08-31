@@ -1,8 +1,17 @@
+Implement Backpropagation
 
-Errors where numbers are treated as categorical in CreateFeatureColumns
+Add optimisers
 
+Allow for data testing 
+
+add l1 and l2 reguariastion
+
+Allow user to choose how many layers and to use, if training a new daatset
+
+
+
+Errors
+    float NaN at Accuracy calc
+    numbers are treated as categorical in CreateFeatureColumns
 
 handle Outliers ... 1.5(IQR) beyond the LB/UB
-
-
-Handle skewed samples.

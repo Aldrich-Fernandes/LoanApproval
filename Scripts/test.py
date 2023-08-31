@@ -1,8 +1,14 @@
-import numpy as np
-val = [0, 1, 0.4, -12, -4.65, -0.23]
-
-for x in val:
-        print(x)
-        print(1 / (1 + np.exp(-x)))
-        print(np.exp(x) / (1 + np.exp(x)))
-        print("\n")
+for x, letter in enumerate(s):
+            matched = False
+            if len(s) == 2 and s in ValidCases:
+                return True
+            
+            if s[x:x+2] in ValidCases:
+                s.remove(s[x:x+2])
+            else:
+                for y in range(x, len(s)-1, 3):
+                    if letter + s[y] in ValidCases:
+                        matched = True
+            
+                if not matched:
+                    return False

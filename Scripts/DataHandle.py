@@ -1,7 +1,7 @@
 import csv, random
 
 class PreProcess:
-    def __init__(self, NumOfDatasets, mode="Load"):
+    def __init__(self, mode, NumOfDatasets):
         #Initial DataHolders
         self.NumOfDatasets = NumOfDatasets
         self.mode = mode
@@ -85,11 +85,10 @@ class PreProcess:
     def AdjustSkew(self, dataset):
         Ones = 0
         Zeros = 0
-        index = -1
+        index = 0
         NewDataset = []
 
         while index < self.NumOfDatasets:
-            index += 1
             row = dataset[index]
             if row[-1] == 'Y' and Zeros > Ones: 
                 NewDataset.append(row)
@@ -97,18 +96,25 @@ class PreProcess:
                 NewDataset.append(row)
             else:
                 NewDataset.append(row)
-            
+            index += 1
         
         return NewDataset
 
     def SaveData(self):
         FileName = str(input("Save file as: "))
+        TrainX = self.TrainX.copy()
+        TrainY = self.TrainY.copy()
+
         with open(f"DataSet/{FileName}.csv", "w", newline="") as file:
             csvWriter = csv.writer(file)
             
-            for index, row in enumerate(self.TrainX):
-                row.append(self.TrainY[index])
+            for index, row in enumerate(TrainX):
+                row.append(TrainY[index])
                 csvWriter.writerow(row)
+            
+            file.close()
+        
+        self.TrainX = [arr[:-1] for arr in self.TrainX]
 
     # Loads a preProccesed Dataset
     def LoadData(self):
@@ -158,30 +164,27 @@ class DataMethod:
             arr1 = [float(arr1) for i in range(len(arr2))]
         elif type(arr2) != list:
             arr2 = [[float(arr2)] for i in range(len(arr1))]
-        
+
+        #input(f"arr1: {arr1} \narr2: {arr2}")
         arr1Shape = [len(arr1), len(arr1[0])]
         arr2Shape = [len(arr2), len(arr2[0])]
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
-            print(arr1Shape, arr2Shape)
+            #print(arr1Shape, arr2Shape)
             Output = []
             for rowIndex, row in enumerate(arr1):
                 Output.append([])
                 for column in DataMethod.Transpose(arr2):
                     Output[rowIndex].append(sum(a*b for a,b in zip(row, column)))
             
-            input([len(Output), len(Output[0])])
+            #input([len(Output), len(Output[0])])
             return Output
 
         else:
             print(f"Not capable of dotting as \n  Array1:{arr1Shape}\n  Array2:{arr2Shape}")
             input()
-
-        
-
-        #return round(sum([x*y for x,y in zip(arr1, arr2)]), 16)
     
     @staticmethod
     def Multiply(arr1, arr2):
         if type(arr1) != list:
             arr1 = [float(arr1) for x in range(len(arr2))]
-        return [round(a*b, 16) for a,b in zip(arr1, arr2)]
+        return [round(a*b, 24) for a,b in zip(arr1, arr2)]

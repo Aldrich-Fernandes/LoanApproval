@@ -171,3 +171,154 @@ class BinaryCrossEntropy(Loss):
         SampleLoss = np.mean(SampleLoss, axis=-1)
 
         return SampleLoss
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+import numpy as np
+from math import exp, log
+
+from DataHandle import *
+from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy
+
+DM = DataMethod()
+
+class NeuralNetwork:        
+    def train(self, NumOfDatasets=300):
+        # Important Values
+        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(NumOfDatasets).getData() # max 614
+        self.Loss = 0.0
+        self.Accuracy = 0.0
+
+        #Create Network
+        Hiddenlayer1 = Layer(11, 7, ReLU())
+        Hiddenlayer2 = Layer(7, 4, ReLU())
+        Outputlayer = Layer(4, 1, Sigmoid())
+
+        BinaryLoss = BinaryCrossEntropy()
+
+        # Training Values
+        LowestLoss = 9999999
+        Epochs = 2000
+
+        BestWeight_H1 = Hiddenlayer1.weights.copy()
+        BestBiases_H1 = Hiddenlayer1.biases.copy()
+
+        BestWeight_H2 = Hiddenlayer2.weights.copy()
+        BestBiases_H2 = Hiddenlayer2.biases.copy()
+
+        BestWeight_O = Outputlayer.weights.copy()
+        BestBiases_O = Outputlayer.biases.copy()
+
+        # Epochs
+        for iteration in range(Epochs):
+        
+            Hiddenlayer1.incrementVals()
+            Hiddenlayer2.incrementVals()
+            Outputlayer.incrementVals()
+
+            Hiddenlayer1.forward(self.TrainX)
+            Hiddenlayer2.forward(Hiddenlayer1.ActivatedOutput)
+            Outputlayer.forward(Hiddenlayer2.ActivatedOutput)
+
+            result = Outputlayer.ActivatedOutput
+            
+            self.Loss = BinaryLoss.calculate(result, self.TrainY)
+
+            self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
+            
+            if self.Loss < LowestLoss:
+                self.DisplayResults(iteration)
+
+                BestWeight_H1 = Hiddenlayer1.weights.copy()
+                BestBiases_H1 = Hiddenlayer1.biases.copy()
+
+                BestWeight_H2 = Hiddenlayer2.weights.copy()
+                BestBiases_H2 = Hiddenlayer2.biases.copy()
+
+                BestWeight_O = Outputlayer.weights.copy()
+                BestBiases_O = Outputlayer.biases.copy()
+
+                LowestLoss = self.Loss
+            else:
+                Hiddenlayer1.weights = BestWeight_H1.copy()
+                Hiddenlayer1.biases = BestBiases_H1.copy()
+
+                Hiddenlayer2.weights = BestWeight_H2.copy()
+                Hiddenlayer2.biases = BestBiases_H2.copy()
+
+                Outputlayer.weights = BestWeight_O.copy()
+                Outputlayer.biases = BestBiases_O.copy()
+
+    def DisplayResults(self, iteration):
+        print(f"Iteration: {iteration} Loss: {round(self.Loss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
+
+        
+class Layer:
+    def __init__(self, NoOfInputs, NoOfNeurons, activation):
+        self.__NoOfInputs = NoOfInputs
+        self.__NoOfNeurons = NoOfNeurons
+        self.weights = [DM.Multiply([0.01 for x in range(NoOfInputs)], np.random.randn(1, NoOfNeurons).tolist()[0])
+                       for sample in range(NoOfInputs)]
+    
+        self.biases = [0.0 for x in range(NoOfNeurons)]
+        self.activation = activation
+
+    def forward(self, inputs):
+        
+        self.LayerOutput = [[DM.DotProduct(entry, WeightsForNeuron) + self.biases[NeuronIndex] for NeuronIndex, WeightsForNeuron in enumerate(DM.Transpose(self.weights))] 
+                       for entry in inputs]
+
+        self.applyActivation()
+
+    def applyActivation(self):
+        self.ActivatedOutput = self.activation.forward(self.LayerOutput)
+
+    def incrementVals(self, multiplier=0.05):
+        self.weights += multiplier * np.random.randn(self.__NoOfInputs, self.__NoOfNeurons)
+        self.biases = [a+b for a,b in zip(self.biases, DM.Multiply([multiplier for x in range(self.__NoOfNeurons)], 
+                                                                   np.random.randn(1, self.__NoOfNeurons).tolist()[0]))]
+        
+
+import numpy as np
+from math import log
+
+from DataHandle import DataMethod as DM
+
+#Activations
+class ReLU:
+    def forward(self, inputs):
+        for rowIndex, entry in enumerate(inputs):
+            for index, element in enumerate(entry):
+                if element < 0:
+                    inputs[rowIndex][index] = 0
+        return inputs
+
+class Sigmoid:
+    def forward(self, inputs):
+        inputs = list(map(lambda z: z[0], inputs))
+        return [1 / (np.exp(-val) + 1) for val in inputs]
+
+# Loss
+class Loss:
+    def calculate(self, output, y):
+        SampleLosses = self.forward(output, y)
+        return SampleLosses #DataLoss
+
+class BinaryCrossEntropy(Loss): 
+    def forward(self, predictions, TrueVals):
+        # Remove any 0s or 1s to avoid arithmethic errors
+        for index, val in enumerate(predictions):
+            if val < 1e-7:
+                predictions[index] = 0.0000001
+            elif val > 1- 1e-7:
+                predictions[index] = 0.9999999
+
+        SampleLoss = [-(val1+val2) for val1, val2 in zip(DM.Multiply(TrueVals, [log(x) for x in predictions]),  #Probabilty of 1
+                                                        DM.Multiply([1-x for x in TrueVals], [log(1-x) for x in predictions]))] # Probablity of 0
+        
+        SampleLoss = round(sum(SampleLoss) / len(SampleLoss), 16)
+
+        return SampleLoss
+    
+
+# Optimizers

@@ -1,17 +1,42 @@
-Implement Backpropagation
+TODO:
 
-Add optimisers
+    Add optimisers
 
-Allow for data testing 
+    Allow for data testing 
 
-add l1 and l2 reguariastion
+    add l1 and l2 reguariastion
 
-Allow user to choose how many layers and to use, if training a new daatset
+    UI
 
+    Userinput error handling
+
+    debugging
+
+
+    if have time:    Allow user to choose how many layers and to use, if training a new daatset
+
+Skills:
+        OOP
+        OOP objects at runtime
+        Complex standard algotithms and structures - csv Data handle
+    +    List operations
+    +    Advanced matrix Operations
+        Reclusive Algorithms (calls itself in it's own function - Main)
+    ?    Complex user difined Algorithms
+        Dynamic generation of objects based on complex user difned use of OOP model (allow user to create sustom NN - eg layers)
+
+    Can ADD though user logging:
+        client server model
+        Aggregate SQL functions
+        Hashing - Sorting and searching
 
 
 Errors
     float NaN at Accuracy calc
     numbers are treated as categorical in CreateFeatureColumns
+    RuntimeWarning: overflow encountered in double_scalars --- Sigmoid differential
 
 handle Outliers ... 1.5(IQR) beyond the LB/UB
+
+
+ -------- Potentailly make it so that it can be used with any csv array

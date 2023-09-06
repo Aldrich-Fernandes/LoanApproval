@@ -3,14 +3,14 @@
 
 Features: 
     - Store login and training data in SQLite
-    - Uses linear regression with ANN
+    - Uses logistic regression
     - Login system
         - As Guest(customer) 
             - Basic Output of Boolean data
         - As Employee 
             - Output of Boolean data
             - Probabilities
-            - Can retrain the ANN (shuffles the data each time)
+            - Can retrain the NN (shuffles the data each time)
     - GUI
 UI:
     1. Employee login (Username, Password, LastLogin_Date/Time, Retrained_ANN)

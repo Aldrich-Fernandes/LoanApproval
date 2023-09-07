@@ -1,4 +1,5 @@
 import csv, random
+import numpy as np
 
 class PreProcess:
     def __init__(self, mode, NumOfDatasets):
@@ -39,17 +40,33 @@ class PreProcess:
 
         self.TrainY = FeatureColumns.pop()
 
+        FeatureColumns = self.Standardisation(FeatureColumns)
+
         self.TrainX = DataMethod.Transpose(FeatureColumns)
 
         # Saves cleaned data
         self.SaveData()
     
+    def Standardisation(self, FeatureColumns):
+        self.ScalingData = {'means': [],
+                            'stds': []}
+        for ind, feature in enumerate(FeatureColumns):
+            mean = sum(feature) / len(feature)
+            StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
+            
+            self.ScalingData['means'].append(mean)
+            self.ScalingData['stds'].append(StandardDeviation)
+
+            FeatureColumns[ind] = [(i-mean)/StandardDeviation for i in feature]       
+        return FeatureColumns
+
     def CreateFeatureColumns(self, FeatureColumns): #############################    Broken
         
         for ColumnIndex, features in enumerate(FeatureColumns): # for each column
             for ElementIndex, element in enumerate(features):
                 try:
                     FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+
                 except ValueError:
                     if element not in self.CategoricalFeatureKeys.keys():
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
@@ -105,7 +122,7 @@ class PreProcess:
         TrainX = self.TrainX.copy()
         TrainY = self.TrainY.copy()
 
-        with open(f"DataSet/{FileName}.csv", "w", newline="") as file:
+        with open(f"DataSet/Preprocessed/{FileName}.csv", "w", newline="") as file:
             csvWriter = csv.writer(file)
             
             for index, row in enumerate(TrainX):
@@ -120,7 +137,7 @@ class PreProcess:
     def LoadData(self):
         FileName = str(input("Load File: "))
 
-        with open(f"DataSet/{FileName}.csv", "r") as file:
+        with open(f"DataSet/Preprocessed/{FileName}.csv", "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 self.TrainX.append(list(map(float, row[:-1])))
@@ -130,7 +147,6 @@ class PreProcess:
     def getData(self):
         # Spliiting for Training data
         self.TestX, self.TestY = self.SplitData(percent=0.1)
-
         return self.TrainX, self.TrainY, self.TestX, self.TestY
 
     def Display(self):        
@@ -166,8 +182,9 @@ class DataMethod:
             arr2 = [[float(arr2)] for i in range(len(arr1))]
 
         #input(f"arr1: {arr1} \narr2: {arr2}")
-        arr1Shape = [len(arr1), len(arr1[0])]
+        
         arr2Shape = [len(arr2), len(arr2[0])]
+        arr1Shape = [len(arr1), len(arr1[0])]
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
             #print(arr1Shape, arr2Shape)
             Output = []

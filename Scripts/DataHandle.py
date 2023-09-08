@@ -57,7 +57,8 @@ class PreProcess:
             self.ScalingData['means'].append(mean)
             self.ScalingData['stds'].append(StandardDeviation)
 
-            FeatureColumns[ind] = [(i-mean)/StandardDeviation for i in feature]       
+            FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]    
+            input(FeatureColumns[ind])   
         return FeatureColumns
 
     def CreateFeatureColumns(self, FeatureColumns): #############################    Broken

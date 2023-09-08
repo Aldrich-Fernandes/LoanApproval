@@ -111,3 +111,10 @@ class DataMethod:
         result = sum([x*y for x,y in zip(arr1, arr2)])
         
         return round(result, 8)
+
+
+NPData = DataMethod.Transpose(FeatureColumns)
+NPmean = np.mean(NPData, axis=0)
+NPstd = np.std(NPData, axis=0)
+data = (NPData-NPmean) / NPstd
+data = DataMethod.Transpose(data.tolist())

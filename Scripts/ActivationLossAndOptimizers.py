@@ -6,12 +6,14 @@ from DataHandle import DataMethod as DM
 #Activations
 class ReLU:
     def forward(self, inputs):
+        self.inputs = inputs
         self.outputs = [[0 if element < 0 else element for element in entry]
                         for entry in inputs]
 
     def backward(self, dvalues):
-        self.dinputs = [[1 if element < 0 else 1 for element in entry] 
-                        for entry in dvalues]
+        dvals = dvalues.copy()
+        self.dinputs = [[0 if element <= 0 else dvals[entryIndex][elementIndex] for elementIndex, element in enumerate(entry)]
+                        for entryIndex, entry in enumerate(self.inputs)]
 
 class Sigmoid:
     def forward(self, inputs):
@@ -19,7 +21,11 @@ class Sigmoid:
         self.outputs = [1 / (np.exp(-val) + 1) for val in inputs]
     
     def backward(self, dvalues):
-        self.dinputs = [[(np.exp(-x) / ((1 + 2*np.exp(-x) + np.exp(-x*2))))] for x in dvalues]
+        #input(f"Dvalues: {dvalues} \nself.output: {self.outputs}")
+        
+        self.dinputs = [[a*b*c] for a,b,c in zip(dvalues, [1-i for i in self.outputs], self.outputs)]
+        #self.dinputs = dvalues * (1-self.output) * self.output
+        #self.dinputs = [[(np.exp(-x) / ((1 + 2*np.exp(-x) + np.exp(-x*2))))] for x in dvalues]
 
 # Loss
 class Loss:
@@ -57,3 +63,13 @@ class BinaryCrossEntropy(Loss):
                                      [1-j for j in dvalues])]
         self.dinputs = [v1+v2 for v1, v2 in zip(vals1, vals2)]
     
+
+class OptimizerSGD:
+    def __init__(self, learningRate=1):
+        self.__learningRate = learningRate
+
+    def UpdateParameters(self, layer): ### Issue - result keeps increasing to 1 until crash
+        AdjustedDWeight = [DM.Multiply(-self.__learningRate, sample) for sample in layer.dweights]
+        layer.weights = [[a+b for a, b in zip(layer.weights[x], AdjustedDWeight[x])] for x in range(len(layer.weights))]
+
+        layer.biases = [a+b for a,b in zip(layer.biases, DM.Multiply(-self.__learningRate, layer.dbiases))]

@@ -1,7 +1,7 @@
 import numpy as np
 
 from DataHandle import *
-from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy
+from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, OptimizerSGD
 
 DM = DataMethod()
 
@@ -14,71 +14,48 @@ class NeuralNetwork:
 
         #Create Network
         Hiddenlayer1 = Layer(11, 7, ReLU())
-        Hiddenlayer2 = Layer(7, 4, ReLU())
-        Outputlayer = Layer(4, 1, Sigmoid())
+        #Hiddenlayer2 = Layer(7, 4, ReLU())
+        Outputlayer = Layer(7, 1, Sigmoid())
 
         BinaryLoss = BinaryCrossEntropy()
+        Optimizer = OptimizerSGD()
 
         # Training Values
         LowestLoss = 9999999
-        Epochs = 2000
-
-        BestWeight_H1 = Hiddenlayer1.weights.copy()
-        BestBiases_H1 = Hiddenlayer1.biases.copy()
-
-        BestWeight_H2 = Hiddenlayer2.weights.copy()
-        BestBiases_H2 = Hiddenlayer2.biases.copy()
-
-        BestWeight_O = Outputlayer.weights.copy()
-        BestBiases_O = Outputlayer.biases.copy()
+        Epochs = 2000    
 
         # Epochs
         for iteration in range(Epochs):
         
             Hiddenlayer1.incrementVals()
-            Hiddenlayer2.incrementVals()
+            #Hiddenlayer2.incrementVals()
             Outputlayer.incrementVals()
 
             Hiddenlayer1.forward(self.TrainX)
-            Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
-            Outputlayer.forward(Hiddenlayer2.activation.outputs)
+            #Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
+            Outputlayer.forward(Hiddenlayer1.activation.outputs)
 
             result = Outputlayer.activation.outputs.copy()
-
+            input(result)
             self.Loss = BinaryLoss.calculate(result, self.TrainY)
 
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
             
             if self.Loss < LowestLoss:
-                self.DisplayResults(iteration, LowestLoss)
-
-                BestWeight_H1 = Hiddenlayer1.weights.copy()
-                BestBiases_H1 = Hiddenlayer1.biases.copy()
-
-                BestWeight_H2 = Hiddenlayer2.weights.copy()
-                BestBiases_H2 = Hiddenlayer2.biases.copy()
-
-                BestWeight_O = Outputlayer.weights.copy()
-                BestBiases_O = Outputlayer.biases.copy()
-
                 LowestLoss = self.Loss
-            else:
-                Hiddenlayer1.weights = BestWeight_H1.copy()
-                Hiddenlayer1.biases = BestBiases_H1.copy()
-
-                Hiddenlayer2.weights = BestWeight_H2.copy()
-                Hiddenlayer2.biases = BestBiases_H2.copy()
-
-                Outputlayer.weights = BestWeight_O.copy()
-                Outputlayer.biases = BestBiases_O.copy()
-
+                self.DisplayResults(iteration, LowestLoss)
+            
             if iteration % 100 == 0:
                 self.DisplayResults(iteration, LowestLoss) 
 
             BinaryLoss.backward(result, self.TrainY)
             Outputlayer.backward(BinaryLoss.dinputs)
-            Hiddenlayer2.backward(Outputlayer.dinputs)
-            Hiddenlayer1.backward(Hiddenlayer2.dinputs)
+            #Hiddenlayer2.backward(Outputlayer.dinputs)
+            Hiddenlayer1.backward(Outputlayer.dinputs)
+
+            Optimizer.UpdateParameters(Hiddenlayer1)
+            #Optimizer.UpdateParameters(Hiddenlayer2)
+            Optimizer.UpdateParameters(Outputlayer)
             
         # test
         Hiddenlayer1.forward(self.TestX)
@@ -120,8 +97,9 @@ class Layer:
 
         dvalues = self.activation.dinputs.copy()
 
-        self.dweights = [DM.DotProduct(DM.Transpose(self.inputs), dvalues)]
-        self.dbiases = sum([x[0] for x in dvalues])
+        #input(f"{DM.Transpose(self.inputs)}\n\n{dvalues}")
+        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
+        self.dbiases = [sum(x) for x in dvalues]
 
         self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.weights))
 

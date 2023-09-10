@@ -21,11 +21,8 @@ class Sigmoid:
         self.outputs = [1 / (np.exp(-val) + 1) for val in inputs]
     
     def backward(self, dvalues):
-        #input(f"Dvalues: {dvalues} \nself.output: {self.outputs}")
         
         self.dinputs = [[a*b*c] for a,b,c in zip(dvalues, [1-i for i in self.outputs], self.outputs)]
-        #self.dinputs = dvalues * (1-self.output) * self.output
-        #self.dinputs = [[(np.exp(-x) / ((1 + 2*np.exp(-x) + np.exp(-x*2))))] for x in dvalues]
 
 # Loss
 class Loss:
@@ -65,7 +62,7 @@ class BinaryCrossEntropy(Loss):
     
 
 class OptimizerSGD:
-    def __init__(self, learningRate=1):
+    def __init__(self, learningRate=0.01):
         self.__learningRate = learningRate
 
     def UpdateParameters(self, layer): ### Issue - result keeps increasing to 1 until crash

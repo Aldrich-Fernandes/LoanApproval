@@ -31,25 +31,25 @@ class PreProcess:
         Dataset = self.AdjustSkew(Dataset)
         #Dealing with categorical data
 
-        FeatureColumns = DataMethod.Transpose(Dataset)
+        self.FeatureColumns = DataMethod.Transpose(Dataset)
 
-        FeatureColumns = self.ReplaceMissingVals(FeatureColumns)
+        self.ReplaceMissingVals()
         
-        FeatureColumns = self.CreateFeatureColumns(FeatureColumns)
+        self.ConvertToInterger()
 
-        self.__TrainY = FeatureColumns.pop()
+        self.__TrainY = self.FeatureColumns.pop()
 
-        FeatureColumns = self.Standardisation(FeatureColumns)
+        self.Standardisation()
 
-        self.__TrainX = DataMethod.Transpose(FeatureColumns)
+        self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
         # Saves cleaned data
         self.SaveData()
     
-    def Standardisation(self, FeatureColumns): # If feature has all same val, std = 0 hence zero devision error
+    def Standardisation(self): # If feature has all same val, std = 0 hence zero devision error
         self.ScalingData = {'means': [],
                             'stds': []}
-        for ind, feature in enumerate(FeatureColumns):
+        for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
             
@@ -57,30 +57,29 @@ class PreProcess:
             self.ScalingData['stds'].append(StandardDeviation)
 
             try:
-                FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
+                self.FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
             except ZeroDivisionError:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
-                input(FeatureColumns[ind])   
-        return FeatureColumns
-
-    def CreateFeatureColumns(self, FeatureColumns): #############################    Broken
+                input(self.FeatureColumns[ind])   
         
-        for ColumnIndex, features in enumerate(FeatureColumns): # for each column
+
+    def ConvertToInterger(self): #############################    Broken
+        
+        for ColumnIndex, features in enumerate(self.FeatureColumns): # for each column
             for ElementIndex, element in enumerate(features):
                 try:
-                    FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+                    self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
 
                 except ValueError:
                     if element not in self.CategoricalFeatureKeys.keys():
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     
-                    FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
+                    self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
             
-        return FeatureColumns
     
-    def ReplaceMissingVals(self, FeatureColumns): #############################    Broken
+    def ReplaceMissingVals(self): #############################    Broken
         Numbers = '1234567890'
-        for Column in FeatureColumns: # Selects the most common / mean input
+        for Column in self.FeatureColumns: # Selects the most common / mean input
             TestElement = ""
             while TestElement == "":
                 TestElement = Column[random.randint(0, len(Column)-1)]
@@ -94,7 +93,7 @@ class PreProcess:
             for index, element in enumerate(Column):
                 if element == "":
                     Column[index] = ReplacementData
-        return FeatureColumns
+        
     
     def SplitData(self, percent=0.1): # 80-20
         NumOfTrainData = round(len(self.__TrainX) * percent)

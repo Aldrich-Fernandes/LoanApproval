@@ -5,62 +5,53 @@ from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, Optim
 
 DM = DataMethod()
 
-class NeuralNetwork:        
+class NeuralNetwork:        # Currently overfitting
     def train(self, mode, NumOfDatasets=300):
         # Important Values
         self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(mode, NumOfDatasets).getData() # max 614
-        self.Loss = 0.0
         self.Accuracy = 0.0
 
         #Create Network
-        Hiddenlayer1 = Layer(11, 7, ReLU())
-        #Hiddenlayer2 = Layer(7, 4, ReLU())
+        Hiddenlayer = Layer(11, 7, ReLU())
         Outputlayer = Layer(7, 1, Sigmoid())
 
         BinaryLoss = BinaryCrossEntropy()
         Optimizer = OptimizerSGD()
 
         # Training Values
-        LowestLoss = 9999999
-        Epochs = 2000    
+        self.LowestLoss = 9999999
+        Epochs = 1000    
 
         # Epochs
         for iteration in range(Epochs):
         
-            Hiddenlayer1.incrementVals()
-            #Hiddenlayer2.incrementVals()
+            Hiddenlayer.incrementVals()
             Outputlayer.incrementVals()
 
-            Hiddenlayer1.forward(self.TrainX)
-            #Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
-            Outputlayer.forward(Hiddenlayer1.activation.outputs)
+            Hiddenlayer.forward(self.TrainX)
+            Outputlayer.forward(Hiddenlayer.activation.outputs)
 
             result = Outputlayer.activation.outputs.copy()
-            #input(result)
-            self.Loss = BinaryLoss.calculate(result, self.TrainY)
+            loss = BinaryLoss.calculate(result, self.TrainY)
 
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
             
-            if self.Loss < LowestLoss:
-                LowestLoss = self.Loss
-                self.DisplayResults(iteration, LowestLoss)
-            
+            if loss < self.LowestLoss:
+                self.LowestLoss = loss
+                self.DisplayResults(iteration)
             if iteration % 100 == 0:
-                self.DisplayResults(iteration, LowestLoss) 
+                self.DisplayResults(iteration) 
 
             BinaryLoss.backward(result, self.TrainY)
             Outputlayer.backward(BinaryLoss.dinputs)
-            #Hiddenlayer2.backward(Outputlayer.dinputs)
-            Hiddenlayer1.backward(Outputlayer.dinputs)
+            Hiddenlayer.backward(Outputlayer.dinputs)
 
-            Optimizer.UpdateParameters(Hiddenlayer1)
-            #Optimizer.UpdateParameters(Hiddenlayer2)
+            Optimizer.UpdateParameters(Hiddenlayer)
             Optimizer.UpdateParameters(Outputlayer)
             
         # test
-        Hiddenlayer1.forward(self.TestX)
-        #Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
-        Outputlayer.forward(Hiddenlayer1.activation.outputs)
+        Hiddenlayer.forward(self.TestX)
+        Outputlayer.forward(Hiddenlayer.activation.outputs)
 
         result = Outputlayer.activation.outputs.copy()
         for x in result:
@@ -70,8 +61,8 @@ class NeuralNetwork:
         
         print(sum([1 for x,y in zip(result, self.TestY) if round(x)==y]) / len(result))
 
-    def DisplayResults(self, iteration, LowestLoss):
-        print(f"Iteration: {iteration} Loss: {round(LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
+    def DisplayResults(self, iteration):
+        print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
 
     
         

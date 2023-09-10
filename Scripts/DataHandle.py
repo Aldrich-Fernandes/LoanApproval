@@ -5,7 +5,6 @@ class PreProcess:
     def __init__(self, mode, NumOfDatasets):
         #Initial DataHolders
         self.__NumOfDatasets = NumOfDatasets
-        self.ChooseMode(mode)
 
         self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
                                     "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
@@ -13,7 +12,7 @@ class PreProcess:
         self.__TrainX = []
         self.__TrainY = []
 
-        self.ChooseMode()
+        self.ChooseMode(mode)
 
     def ChooseMode(self, mode):
         if mode == "New":

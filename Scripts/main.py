@@ -4,7 +4,7 @@ from NeuralNetwork import NeuralNetwork
 Option = int(input("Do you want to train a new (1) or use a old (2) dataset:"))
 if Option == 1:
     mode = "New"
-    NoOfSamples = int(input("How many samples (Max: 600): "))
+    NoOfSamples = int(input("How many samples (20 - 600): "))
 elif Option == 2:
     mode = "Load"
     NoOfSamples = 600

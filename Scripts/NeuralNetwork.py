@@ -36,7 +36,7 @@ class NeuralNetwork:
             Outputlayer.forward(Hiddenlayer1.activation.outputs)
 
             result = Outputlayer.activation.outputs.copy()
-            input(result)
+            #input(result)
             self.Loss = BinaryLoss.calculate(result, self.TrainY)
 
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
@@ -59,8 +59,8 @@ class NeuralNetwork:
             
         # test
         Hiddenlayer1.forward(self.TestX)
-        Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
-        Outputlayer.forward(Hiddenlayer2.activation.outputs)
+        #Hiddenlayer2.forward(Hiddenlayer1.activation.outputs)
+        Outputlayer.forward(Hiddenlayer1.activation.outputs)
 
         result = Outputlayer.activation.outputs.copy()
         for x in result:

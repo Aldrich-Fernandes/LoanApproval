@@ -4,21 +4,21 @@ import numpy as np
 class PreProcess:
     def __init__(self, mode, NumOfDatasets):
         #Initial DataHolders
-        self.NumOfDatasets = NumOfDatasets
-        self.mode = mode
+        self.__NumOfDatasets = NumOfDatasets
+        self.ChooseMode(mode)
 
         self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
                                     "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
                                     "Rural": 2, "3+": 2}
-        self.TrainX = []
-        self.TrainY = []
+        self.__TrainX = []
+        self.__TrainY = []
 
         self.ChooseMode()
 
-    def ChooseMode(self):
-        if self.mode == "New":
+    def ChooseMode(self, mode):
+        if mode == "New":
             self.NewDataset()
-        elif self.mode == "Load":
+        elif mode == "Load":
             self.LoadData()
         else:
             print("Error")
@@ -38,16 +38,16 @@ class PreProcess:
         
         FeatureColumns = self.CreateFeatureColumns(FeatureColumns)
 
-        self.TrainY = FeatureColumns.pop()
+        self.__TrainY = FeatureColumns.pop()
 
         FeatureColumns = self.Standardisation(FeatureColumns)
 
-        self.TrainX = DataMethod.Transpose(FeatureColumns)
+        self.__TrainX = DataMethod.Transpose(FeatureColumns)
 
         # Saves cleaned data
         self.SaveData()
     
-    def Standardisation(self, FeatureColumns):
+    def Standardisation(self, FeatureColumns): # If feature has all same val, std = 0 hence zero devision error
         self.ScalingData = {'means': [],
                             'stds': []}
         for ind, feature in enumerate(FeatureColumns):
@@ -57,8 +57,11 @@ class PreProcess:
             self.ScalingData['means'].append(mean)
             self.ScalingData['stds'].append(StandardDeviation)
 
-            FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]    
-            input(FeatureColumns[ind])   
+            try:
+                FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
+            except ZeroDivisionError:
+                print(f"Mean: {mean} \nSTD: {StandardDeviation}")
+                input(FeatureColumns[ind])   
         return FeatureColumns
 
     def CreateFeatureColumns(self, FeatureColumns): #############################    Broken
@@ -95,9 +98,9 @@ class PreProcess:
         return FeatureColumns
     
     def SplitData(self, percent=0.1): # 80-20
-        NumOfTrainData = round(len(self.TrainX) * percent)
-        TestX = [self.TrainX.pop() for i in range(NumOfTrainData)]
-        TestY = [self.TrainY.pop() for i in range(NumOfTrainData)]
+        NumOfTrainData = round(len(self.__TrainX) * percent)
+        TestX = [self.__TrainX.pop() for i in range(NumOfTrainData)]
+        TestY = [self.__TrainY.pop() for i in range(NumOfTrainData)]
         return TestX, TestY
 
     def AdjustSkew(self, dataset):
@@ -106,7 +109,7 @@ class PreProcess:
         index = 0
         NewDataset = []
 
-        while index < self.NumOfDatasets:
+        while index < self.__NumOfDatasets:
             row = dataset[index]
             if row[-1] == 'Y' and Zeros > Ones: 
                 NewDataset.append(row)
@@ -120,8 +123,8 @@ class PreProcess:
 
     def SaveData(self):
         FileName = str(input("Save file as: "))
-        TrainX = self.TrainX.copy()
-        TrainY = self.TrainY.copy()
+        TrainX = self.__TrainX.copy()
+        TrainY = self.__TrainY.copy()
 
         with open(f"DataSet/Preprocessed/{FileName}.csv", "w", newline="") as file:
             csvWriter = csv.writer(file)
@@ -132,7 +135,7 @@ class PreProcess:
             
             file.close()
         
-        self.TrainX = [arr[:-1] for arr in self.TrainX]
+        self.__TrainX = [arr[:-1] for arr in self.__TrainX]
 
     # Loads a preProccesed Dataset
     def LoadData(self):
@@ -141,18 +144,18 @@ class PreProcess:
         with open(f"DataSet/Preprocessed/{FileName}.csv", "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
-                self.TrainX.append(list(map(float, row[:-1])))
-                self.TrainY.append(int(row[-1]))
+                self.__TrainX.append(list(map(float, row[:-1])))
+                self.__TrainY.append(int(row[-1]))
 
     # Returns Dataset for neural network
     def getData(self):
         # Spliiting for Training data
         self.TestX, self.TestY = self.SplitData(percent=0.1)
-        return self.TrainX, self.TrainY, self.TestX, self.TestY
+        return self.__TrainX, self.__TrainY, self.TestX, self.TestY
 
     def Display(self):        
         print("\nTraining Data")
-        for row in list(zip(self.TrainX, self.TrainY)):
+        for row in list(zip(self.__TrainX, self.__TrainY)):
             print(row)
         
 

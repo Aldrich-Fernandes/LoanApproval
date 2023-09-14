@@ -20,27 +20,23 @@ class NeuralNetwork:        # Currently overfitting
 
         # Training Values
         self.LowestLoss = 9999999
-        Epochs = 1000    
+        Epochs = 40
 
         # Epochs
         for iteration in range(Epochs):
         
-            Hiddenlayer.incrementVals()
-            Outputlayer.incrementVals()
-
             Hiddenlayer.forward(self.TrainX)
             Outputlayer.forward(Hiddenlayer.activation.outputs)
 
             result = Outputlayer.activation.outputs.copy()
-            loss = BinaryLoss.calculate(result, self.TrainY)
+            loss = BinaryLoss.forward(result, self.TrainY)
 
             self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
             
             if loss < self.LowestLoss:
                 self.LowestLoss = loss
-                self.DisplayResults(iteration)
-            if iteration % 100 == 0:
-                self.DisplayResults(iteration) 
+            
+            self.DisplayResults(iteration) 
 
             BinaryLoss.backward(result, self.TrainY)
             Outputlayer.backward(BinaryLoss.dinputs)
@@ -63,13 +59,9 @@ class NeuralNetwork:        # Currently overfitting
 
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
-
-    
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
-        self.__NoOfInputs = NoOfInputs
-        self.__NoOfNeurons = NoOfNeurons
         self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0])
                        for i in range(NoOfInputs)]
     
@@ -85,22 +77,9 @@ class Layer:
 
     def backward(self, dvalues):
         self.activation.backward(dvalues)
-
         dvalues = self.activation.dinputs.copy()
-
-        #input(f"{DM.Transpose(self.inputs)}\n\n{dvalues}")
-        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
-        self.dbiases = [sum(x) for x in dvalues]
 
         self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.weights))
 
-    def incrementVals(self, multiplier=0.05):
-        FractionIncrease = [DM.Multiply(multiplier, np.random.randn(1, self.__NoOfNeurons).tolist()[0])
-                       for sample in range(self.__NoOfInputs)]
-        
-        self.weights = [[a+b for a,b in zip(FractionIncrease[i], self.weights[i])] for i in range(self.__NoOfInputs)]
-
-        self.biases = [a+b for a,b in zip(self.biases, DM.Multiply(multiplier, 
-                                                                   np.random.randn(1, self.__NoOfNeurons).tolist()[0]))]
-        
-    
+        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
+        self.dbiases = [sum(x) for x in dvalues]

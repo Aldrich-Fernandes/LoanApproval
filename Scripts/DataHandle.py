@@ -2,35 +2,25 @@ import csv, random
 import numpy as np
 
 class PreProcess:
-    def __init__(self, mode, NumOfDatasets):
+    def __init__(self, FileName):
         #Initial DataHolders
-        self.__NumOfDatasets = NumOfDatasets
-
-        self.CategoricalFeatureKeys = {"Y": 1, "Yes": 1, "Male": 1, "Graduate": 1, "Urban": 1, 
-                                    "N": 0, "No": 0, "Female": 0, "Not Graduate": 0, "Semiurban": 0,
-                                    "Rural": 2, "3+": 2}
         self.__TrainX = []
         self.__TrainY = []
-
-        self.ChooseMode(mode)
-
-    def ChooseMode(self, mode):
-        if mode == "New":
+        self.CategoricalFeatureKeys = {}
+        
+        if FileName == '':
             self.NewDataset()
-        elif mode == "Load":
-            self.LoadData()
         else:
-            print("Error")
+            self.LoadData(FileName)
 
-    # Generates and saves a new dataset
     def NewDataset(self):
 
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         
         Dataset = self.AdjustSkew(Dataset)
-        #Dealing with categorical data
-
+        
+        # Feature Engineering
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
         self.ReplaceMissingVals()
@@ -43,41 +33,25 @@ class PreProcess:
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
-        # Saves cleaned data
-        self.SaveData()
-    
-    def Standardisation(self): # If feature has all same val, std = 0 hence zero devision error
-        self.ScalingData = {'means': [],
-                            'stds': []}
-        for ind, feature in enumerate(self.FeatureColumns):
-            mean = sum(feature) / len(feature)
-            StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
-            
-            self.ScalingData['means'].append(mean)
-            self.ScalingData['stds'].append(StandardDeviation)
-
-            try:
-                self.FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
-            except ZeroDivisionError:
-                print(f"Mean: {mean} \nSTD: {StandardDeviation}")
-                input(self.FeatureColumns[ind])   
+    def AdjustSkew(self, dataset):
+        Ones = 0
+        Zeros = 0
+        index = 0
+        NewDataset = []
+        size = int(input("Enter the size of the dataset to use (50-600): "))
         
-
-    def ConvertToInterger(self): #############################    Broken
+        while len(NewDataset) != size:
+            index = random.randint(0, len(dataset)-1)
+            row = dataset[index]
+            if (row[-1] == 'Y' and Zeros > Ones) or (row[-1] == 'N' and Ones > Zeros): 
+                NewDataset.append(dataset.pop(index))
+                
+            if Zeros == Ones:
+                NewDataset.append(dataset.pop(index))
         
-        for ColumnIndex, features in enumerate(self.FeatureColumns): # for each column
-            for ElementIndex, element in enumerate(features):
-                try:
-                    self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
-
-                except ValueError:
-                    if element not in self.CategoricalFeatureKeys.keys():
-                        self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
-                    
-                    self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
-            
-    
-    def ReplaceMissingVals(self): #############################    Broken
+        return NewDataset
+        
+    def ReplaceMissingVals(self): 
         Numbers = '1234567890'
         for Column in self.FeatureColumns: # Selects the most common / mean input
             TestElement = ""
@@ -93,38 +67,46 @@ class PreProcess:
             for index, element in enumerate(Column):
                 if element == "":
                     Column[index] = ReplacementData
+                    
+    def ConvertToInterger(self): 
+        self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
+                                    "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
+                                    "Rural": 2., "3+": 2.}
         
+        for ColumnIndex, features in enumerate(self.FeatureColumns): # for each column
+            for ElementIndex, element in enumerate(features):
+                try:
+                    self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+
+                except ValueError:
+                    if element not in self.CategoricalFeatureKeys.keys():
+                        self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
+                    
+                    self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
+
+    def Standardisation(self): # If feature has all same val, std = 0 hence zero devision error
+        self.ScalingData = {'means': [],
+                            'stds': []}
+        for ind, feature in enumerate(self.FeatureColumns):
+            mean = sum(feature) / len(feature)
+            StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
+            
+            self.ScalingData['means'].append(mean)
+            self.ScalingData['stds'].append(StandardDeviation)
+
+            try:
+                self.FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
+            except ZeroDivisionError:
+                print(f"Mean: {mean} \nSTD: {StandardDeviation}")
+                input(self.FeatureColumns[ind])
+
     
-    def SplitData(self, percent=0.1): # 80-20
-        NumOfTrainData = round(len(self.__TrainX) * percent)
-        TestX = [self.__TrainX.pop() for i in range(NumOfTrainData)]
-        TestY = [self.__TrainY.pop() for i in range(NumOfTrainData)]
-        return TestX, TestY
-
-    def AdjustSkew(self, dataset):
-        Ones = 0
-        Zeros = 0
-        index = 0
-        NewDataset = []
-
-        while index < self.__NumOfDatasets:
-            row = dataset[index]
-            if row[-1] == 'Y' and Zeros > Ones: 
-                NewDataset.append(row)
-            elif row[-1] == 'N' and Ones > Zeros:
-                NewDataset.append(row)
-            else:
-                NewDataset.append(row)
-            index += 1
-        
-        return NewDataset
-
     def SaveData(self):
         FileName = str(input("Save file as: "))
         TrainX = self.__TrainX.copy()
         TrainY = self.__TrainY.copy()
 
-        with open(f"DataSet/Preprocessed/{FileName}.csv", "w", newline="") as file:
+        with open(f"DataSet/Models/{FileName}.csv", "w", newline="") as file:
             csvWriter = csv.writer(file)
             
             for index, row in enumerate(TrainX):
@@ -134,27 +116,42 @@ class PreProcess:
             file.close()
         
         self.__TrainX = [arr[:-1] for arr in self.__TrainX]
-
-    # Loads a preProccesed Dataset
-    def LoadData(self):
-        FileName = str(input("Load File: "))
-
-        with open(f"DataSet/Preprocessed/{FileName}.csv", "r") as file:
+ 
+    def LoadData(self,FileName):
+        with open(f"DataSet/Models/{FileName}.csv", "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 self.__TrainX.append(list(map(float, row[:-1])))
                 self.__TrainY.append(int(row[-1]))
 
-    # Returns Dataset for neural network
-    def getData(self):
+    def SplitData(self, percent=0.1): # 80-20
+        NumOfTrainData = round(len(self.__TrainX) * percent)
+        TestX = [self.__TrainX.pop() for i in range(NumOfTrainData)]
+        TestY = [self.__TrainY.pop() for i in range(NumOfTrainData)]
+        return TestX, TestY
+
+    def getData(self, split=0.1):
         # Spliiting for Training data
-        self.TestX, self.TestY = self.SplitData(percent=0.1)
-        return self.__TrainX, self.__TrainY, self.TestX, self.TestY
+        TestX, TestY = self.SplitData(percent=split)
+        return self.__TrainX, self.__TrainY, TestX, TestY
 
     def Display(self):        
         print("\nTraining Data")
         for row in list(zip(self.__TrainX, self.__TrainY)):
             print(row)
+
+    def encode(self, UserData):
+        # 1. Enuerate all the data replacing matching data with those in self.categoricalfeaturekey.
+        # 2. Loop through user data and standardise each of the values
+        for x, val in enumerate(UserData):
+            if val in self.CategoricalFeatureKeys.keys():
+                val = float(self.CategoricalFeatureKeys[val])
+            else:
+                val = float(val)
+
+            UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
+
+        return UserData
         
 
 class DataMethod:
@@ -207,3 +204,30 @@ class DataMethod:
         if type(arr1) != list:
             arr1 = [float(arr1) for x in range(len(arr2))]
         return [round(a*b, 24) for a,b in zip(arr1, arr2)]
+
+
+def getData():
+    UserData = []
+    DataToGet = {'Gender: ': ["Male", "Female"],
+             'Married: ': ["Yes", "No"],
+             'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
+             'Education: ': ["Graduate", "Not Graduate"],
+             'Self employed: ': ["Yes", "No"],
+             'Applicant monthly income: ': -1,
+             'Coapplicant monthly income: ': -1,
+             'Loan amount (in thousands): ': -1,
+             'Loan amount term (months): ': -1,
+             'Credit history meet guildlines?: ': ["Yes", "No"],
+             'Property area: ': ["Urban", "Semiurban", "Rural"]}
+    
+    print("Please enter the following data.")
+    for key, data in DataToGet.items():
+        print("\n------------------------------------------------------\n",key)
+        if type(data) == list:
+            for x, val in enumerate(data):
+                print(f" {x+1}). {val}")
+            choice = int(input("Choice: "))-1
+            UserData.append(data[choice])
+        else:
+            UserData.append(int(input("Enter Data: ")))
+    return UserData

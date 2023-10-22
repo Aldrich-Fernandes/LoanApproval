@@ -1,67 +1,108 @@
 import numpy as np
 
-from DataHandle import *
+from DataHandle import DataMethod
 from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, OptimizerSGD
+
+import matplotlib.pyplot as plt
 
 DM = DataMethod()
 
-class NeuralNetwork:        # Currently overfitting
-    def train(self, mode, NumOfDatasets=300):
-        # Important Values
-        self.TrainX, self.TrainY, self.TestX, self.TestY = PreProcess(mode, NumOfDatasets).getData() # max 614
+class NeuralNetwork:
+    def __init__(self, Epochs=75):
         self.Accuracy = 0.0
+        self.LowestLoss = 9999999
+        
+        self.Epochs = Epochs
+        self.losses = []
+        self.Accuracies = []
+        self.lrs = []
+        
+        # Currently overfitting
+    def train(self, TrainX, TrainY, show=False):
+        # Important Values
+        X, Y = TrainX, TrainY
 
         #Create Network
-        Hiddenlayer = Layer(11, 7, ReLU())
-        Outputlayer = Layer(7, 1, Sigmoid())
+        self.Hiddenlayer = Layer(11, 7, ReLU())
+        self.Outputlayer = Layer(7, 1, Sigmoid())
 
         BinaryLoss = BinaryCrossEntropy()
         Optimizer = OptimizerSGD()
 
-        # Training Values
-        self.LowestLoss = 9999999
-        Epochs = 40
-
         # Epochs
-        for iteration in range(Epochs):
+        for iteration in range(self.Epochs):
         
-            Hiddenlayer.forward(self.TrainX)
-            Outputlayer.forward(Hiddenlayer.activation.outputs)
+            self.Hiddenlayer.forward(X)
+            self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
-            result = Outputlayer.activation.outputs.copy()
-            loss = BinaryLoss.forward(result, self.TrainY)
+            result = self.Outputlayer.activation.outputs.copy()
+            loss = BinaryLoss.forward(result, Y)
 
-            self.Accuracy = sum([1 for x,y in zip(result, self.TrainY) if round(x)==y]) / len(result)
+            self.Accuracy = sum([1 for x,y in zip(result, Y) if round(x)==y]) / len(result)
+
+            self.losses.append(loss)
+            self.Accuracies.append(self.Accuracy)
             
             if loss < self.LowestLoss:
                 self.LowestLoss = loss
+
+            BinaryLoss.backward(result, Y)
+            self.Outputlayer.backward(BinaryLoss.dinputs)
+            self.Hiddenlayer.backward(self.Outputlayer.dinputs)
+
+            #Optimizer.PreUpdate(iteration)
+            Optimizer.UpdateParameters(self.Hiddenlayer)
+            Optimizer.UpdateParameters(self.Outputlayer)
             
-            self.DisplayResults(iteration) 
+            if show:
+                self.DisplayResults(iteration+1)
+            elif not show and iteration==0:
+                print("Training...")
+                
 
-            BinaryLoss.backward(result, self.TrainY)
-            Outputlayer.backward(BinaryLoss.dinputs)
-            Hiddenlayer.backward(Outputlayer.dinputs)
-
-            Optimizer.UpdateParameters(Hiddenlayer)
-            Optimizer.UpdateParameters(Outputlayer)
-            
-        # test
-        Hiddenlayer.forward(self.TestX)
-        Outputlayer.forward(Hiddenlayer.activation.outputs)
-
-        result = Outputlayer.activation.outputs.copy()
-        for x in result:
-            print(x)
-        for x in range(len(result)):
-            print(f"True: {self.TestY[x]} Predicted: {round(result[x])}")
+    def graph(self, sep=False):
+        X = [x for x in range(1, self.Epochs+1)]
+        if not sep:
+            plt.plot(X, self.losses, label='Loss')
+            plt.plot(X, self.Accuracies, label='Accuracy')
+            plt.legend()
+        else:
+            fig, ax = plt.subplots(3, 1, figsize=(10, 8))
+            ax[0].plot(X, self.losses, label='Loss')
+            ax[1].plot(X, self.Accuracies, label='Accuracy')
+            ax[0].legend()
+            ax[1].legend()
+            ax[2].legend()
+        plt.show(block=False)
         
-        print(sum([1 for x,y in zip(result, self.TestY) if round(x)==y]) / len(result))
 
+    def test(self, TestX, TestY, showTests=False):
+        self.Hiddenlayer.forward(TestX)
+        self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+
+        result = self.Outputlayer.activation.outputs.copy()
+        if showTests:
+            for x in range(len(result)):
+                print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")
+        
+        print("Test Accuracy: ", str(sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)))
+
+    def Predict(self, UserData):
+        self.Hiddenlayer.forward([UserData])
+        self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+
+        result = round(self.Outputlayer.activation.outputs[0], 4)
+        if round(result) == 1:
+            print(f"You a likely to be approved. Confidence = {result * 100}")
+        else:
+            print(f"You a unlikely to be approved. Confidence = {(1-result) * 100}")
+    
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
         
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
+    
         self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0])
                        for i in range(NoOfInputs)]
     

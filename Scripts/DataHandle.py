@@ -1,17 +1,17 @@
 import csv, random
-import numpy as np
 
 class PreProcess:
-    def __init__(self, FileName):
+    def __init__(self, New=False):
         #Initial DataHolders
         self.__TrainX = []
         self.__TrainY = []
-        self.CategoricalFeatureKeys = {}
-        
-        if FileName == '':
+        self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
+                                    "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
+                                    "Rural": 2., "3+": 2.}
+        self.ScalingData = {'means': [],
+                            'stds': []}
+        if New:
             self.NewDataset()
-        else:
-            self.LoadData(FileName)
 
     def NewDataset(self):
 
@@ -85,8 +85,6 @@ class PreProcess:
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
 
     def Standardisation(self): # If feature has all same val, std = 0 hence zero devision error
-        self.ScalingData = {'means': [],
-                            'stds': []}
         for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
@@ -99,30 +97,6 @@ class PreProcess:
             except ZeroDivisionError:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
-
-    
-    def SaveData(self):
-        FileName = str(input("Save file as: "))
-        TrainX = self.__TrainX.copy()
-        TrainY = self.__TrainY.copy()
-
-        with open(f"DataSet/Models/{FileName}.csv", "w", newline="") as file:
-            csvWriter = csv.writer(file)
-            
-            for index, row in enumerate(TrainX):
-                row.append(TrainY[index])
-                csvWriter.writerow(row)
-            
-            file.close()
-        
-        self.__TrainX = [arr[:-1] for arr in self.__TrainX]
- 
-    def LoadData(self,FileName):
-        with open(f"DataSet/Models/{FileName}.csv", "r") as file:
-            csvreader = csv.reader(file)
-            for row in csvreader:
-                self.__TrainX.append(list(map(float, row[:-1])))
-                self.__TrainY.append(int(row[-1]))
 
     def SplitData(self, percent=0.1): # 80-20
         NumOfTrainData = round(len(self.__TrainX) * percent)
@@ -179,20 +153,15 @@ class DataMethod:
             arr1 = [float(arr1) for i in range(len(arr2))]
         elif type(arr2) != list:
             arr2 = [[float(arr2)] for i in range(len(arr1))]
-
-        #input(f"arr1: {arr1} \narr2: {arr2}")
         
         arr2Shape = [len(arr2), len(arr2[0])]
         arr1Shape = [len(arr1), len(arr1[0])]
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
-            #print(arr1Shape, arr2Shape)
             Output = []
             for rowIndex, row in enumerate(arr1):
                 Output.append([])
                 for column in DataMethod.Transpose(arr2):
                     Output[rowIndex].append(sum(a*b for a,b in zip(row, column)))
-            
-            #input([len(Output), len(Output[0])])
             return Output
 
         else:
@@ -204,30 +173,3 @@ class DataMethod:
         if type(arr1) != list:
             arr1 = [float(arr1) for x in range(len(arr2))]
         return [round(a*b, 24) for a,b in zip(arr1, arr2)]
-
-
-def getData():
-    UserData = []
-    DataToGet = {'Gender: ': ["Male", "Female"],
-             'Married: ': ["Yes", "No"],
-             'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
-             'Education: ': ["Graduate", "Not Graduate"],
-             'Self employed: ': ["Yes", "No"],
-             'Applicant monthly income: ': -1,
-             'Coapplicant monthly income: ': -1,
-             'Loan amount (in thousands): ': -1,
-             'Loan amount term (months): ': -1,
-             'Credit history meet guildlines?: ': ["Yes", "No"],
-             'Property area: ': ["Urban", "Semiurban", "Rural"]}
-    
-    print("Please enter the following data.")
-    for key, data in DataToGet.items():
-        print("\n------------------------------------------------------\n",key)
-        if type(data) == list:
-            for x, val in enumerate(data):
-                print(f" {x+1}). {val}")
-            choice = int(input("Choice: "))-1
-            UserData.append(data[choice])
-        else:
-            UserData.append(int(input("Enter Data: ")))
-    return UserData

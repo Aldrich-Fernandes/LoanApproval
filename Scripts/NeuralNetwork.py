@@ -16,16 +16,15 @@ class NeuralNetwork:
         self.losses = []
         self.Accuracies = []
         self.lrs = []
+
+        self.Hiddenlayer = Layer(11, 7, ReLU())
+        self.Outputlayer = Layer(7, 1, Sigmoid())
         
         # Currently overfitting
     def train(self, TrainX, TrainY, show=False):
-        # Important Values
         X, Y = TrainX, TrainY
 
-        #Create Network
-        self.Hiddenlayer = Layer(11, 7, ReLU())
-        self.Outputlayer = Layer(7, 1, Sigmoid())
-
+        # For backpass
         BinaryLoss = BinaryCrossEntropy()
         Optimizer = OptimizerSGD()
 
@@ -50,14 +49,11 @@ class NeuralNetwork:
             self.Outputlayer.backward(BinaryLoss.dinputs)
             self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
-            #Optimizer.PreUpdate(iteration)
             Optimizer.UpdateParameters(self.Hiddenlayer)
             Optimizer.UpdateParameters(self.Outputlayer)
             
             if show:
                 self.DisplayResults(iteration+1)
-            elif not show and iteration==0:
-                print("Training...")
                 
 
     def graph(self, sep=False):
@@ -93,9 +89,9 @@ class NeuralNetwork:
 
         result = round(self.Outputlayer.activation.outputs[0], 4)
         if round(result) == 1:
-            print(f"You a likely to be approved. Confidence = {result * 100}")
+            print(f"You a likely to be approved. Confidence = {result * 100}%")
         else:
-            print(f"You a unlikely to be approved. Confidence = {(1-result) * 100}")
+            print(f"You a unlikely to be approved. Confidence = {(1-result) * 100}%")
     
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")

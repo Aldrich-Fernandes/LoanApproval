@@ -27,55 +27,75 @@ def getData():
             UserData.append(int(input("Enter Data: ")))
     return UserData
 
-def SaveModel():
-    FileName = input("Please enter a model name: ")
+def SaveModel(Model, PreProcessor):
+    FileName = input("Please enter a model name: ").lower()
 
     file = open(f"DataSet/Models/{FileName}.txt", "w")
-    file.write(str(model.Hiddenlayer.weights)+"\n")
-    file.write(str(model.Hiddenlayer.biases)+"\n")
-    file.write(str(model.Outputlayer.weights)+"\n")
-    file.write(str(model.Outputlayer.biases)+"\n")
-    file.write(str(model.Accuracy)+"\n")
+    file.write(str(Model.Hiddenlayer.weights)+"\n")
+    file.write(str(Model.Hiddenlayer.biases)+"\n")
+    file.write(str(Model.Outputlayer.weights)+"\n")
+    file.write(str(Model.Outputlayer.biases)+"\n")
+    file.write(str(Model.Accuracy)+"\n")
     file.write(str(PreProcessor.ScalingData))
     file.close()
 
-def LoadModel():
-    file = open(f"DataSet/Models/{FileName}.txt")
-    model.Hiddenlayer.weights = eval(file.readline().rstrip())
-    model.Hiddenlayer.biases = eval(file.readline().rstrip())
-    model.Outputlayer.weights = eval(file.readline().rstrip())
-    model.Outputlayer.biases = eval(file.readline().rstrip())
-    model.Accuracy = eval(file.readline().rstrip())
-    PreProcessor.ScalingData = eval(file.readline().rstrip())
+def LoadModel(FileName):
+    try:
+        PreProcessor = PreProcess()
+        Model = NeuralNetwork()
 
-FileName = input("Enter the name of the model to load (Press ENTER to train a new one): ")
+        file = open(f"DataSet/Models/{FileName}.txt")
+        Model.Hiddenlayer.weights = eval(file.readline().rstrip())
+        Model.Hiddenlayer.biases = eval(file.readline().rstrip())
+        Model.Outputlayer.weights = eval(file.readline().rstrip())
+        Model.Outputlayer.biases = eval(file.readline().rstrip())
+        Model.Accuracy = eval(file.readline().rstrip())
+        PreProcessor.ScalingData = eval(file.readline().rstrip())
+        return Model, PreProcessor
+    
+    except FileNotFoundError:
+        print("File Doesnt exist. Returning to menu...")
+        main()
 
-if len(FileName) == 0:
-    PreProcessor = PreProcess(New=True)
-    TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+def getChoice():
+    while True:
+        try:
+            choice = int(input("Menu: \n1). Predict \n2). Load Model \n3). Load New Model \nEnter choice: "))
+            while choice < 1 or choice > 3:
+                choice = int(input("Invalid input. Enter choice: "))
+            return choice
+        except ValueError:
+            print("This is not a interger")
+        
+def setup():
+    choice = getChoice()
+    
+    if choice == 1:
+        Model, PreProcessor = LoadModel(FileName="default")
+    elif choice == 2:
+        FileName = input("Enter Model name: ").lower()
+        Model, PreProcessor = LoadModel(FileName)
+    elif choice == 3:
+        PreProcessor = PreProcess(New=True)
+        TrainX, TrainY, TestX, TestY = PreProcessor.getData()
 
-    model = NeuralNetwork()
-    model.train(TrainX, TrainY, show=True)
-    model.graph()
-    model.test(TestX, TestY)
+        Model = NeuralNetwork()
+        Model.train(TrainX, TrainY, show=True)
 
-    CanSave = str(input("Save the model? (Y/N): ")).lower()
-    if CanSave == "y":
-        SaveModel()
+        CanSave = str(input("Save the model? (Y/N): ")).lower()
+        if CanSave == "y":
+            SaveModel(Model, PreProcessor)
 
-else:
-    model = NeuralNetwork()
-    PreProcessor = PreProcess()
-    LoadModel()
-    print(f"Model Loaded Succesfully. (Acc={round(model.Accuracy*100, 2)})")
+    print(f"Model Loaded Succesfully. (Acc={round(Model.Accuracy*100, 2)})")
+    return Model, PreProcessor
 
-UserData = getData()
-UserData = PreProcessor.encode(UserData)
-model.Predict(UserData)
+def main():
+    Model, PreProcessor = setup()
 
-print("Thank you for using this service.")
+    UserData = getData()
+    UserData = PreProcessor.encode(UserData)
+    Model.Predict(UserData)
 
+    print("Thank you for using this service.")
 
-# Option to Train a new model -- Load a model - if empty train a new model
-#           Load New -- Load a model
-#                   --> Enter Data to predict approval
+main()

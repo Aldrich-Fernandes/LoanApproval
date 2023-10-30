@@ -1,20 +1,15 @@
 import tkinter as tk
 
 class GUI:
-    def __init__(self):
-        self.screenWidth = 700
-        self.screenHeight = 500
-    
+    def __init__(self):    
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", exit)
         self.root.title("Home Loan Approval Predictor")
-        self.root.geometry(f"{str(self.screenWidth)}x{str(self.screenHeight)}")
+        self.root.geometry(f"700x500")
 
-        self.predictScreen()
-        
-        self.root.mainloop()
+        self.CollectedData = []
 
-    def predictScreen(self):
+    def LoadPredictionGUI(self):
         self.PredictFrame = tk.Frame(self.root, borderwidth=2)
 
         # generate Questionair 
@@ -46,15 +41,23 @@ class GUI:
 
             index +=1
 
-        ProcessBtn = tk.Button(self.PredictFrame, text="Enter", command=self.getUserData).grid(row=index, column=0, padx=5, pady=5)
+        ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.UpdateUserData).grid(row=index, column=0, padx=5, pady=5)
+        
 
         self.PredictFrame.pack()
 
-    def getUserData(self):
-        CollectedData = []
-        for data in self.UserData:
-            CollectedData.append(data.get())
-        
-        print(CollectedData)
+    def showResult(self, accuracy, result):
+        if round(result) == 1:
+            txt = f"You a likely to be approved. Confidence = {result * 100}%"
+        else:
+            txt = f"You a unlikely to be approved. Confidence = {result * 100}%"
 
-myGUI = GUI()
+        #print("Here")
+        #tk.Label(self.PredictFrame, text=f"Model Loaded Succesfully. (Acc={round(accuracy*100, 2)}%)", font=('Arial', 20)).grid(row=14, column=0)
+        #tk.Label(self.PredictFrame, text=txt).grid(row=15, column=0)
+
+    def UpdateUserData(self):
+        self.CollectedData = []
+        for data in self.UserData:
+            self.CollectedData.append(data.get())
+        return self.CollectedData

@@ -87,11 +87,7 @@ class NeuralNetwork:
         self.Hiddenlayer.forward([UserData])
         self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
-        result = round(self.Outputlayer.activation.outputs[0], 4)
-        if round(result) == 1:
-            print(f"You a likely to be approved. Confidence = {result * 100}%")
-        else:
-            print(f"You a unlikely to be approved. Confidence = {(1-result) * 100}%")
+        self.Result = round(self.Outputlayer.activation.outputs[0], 4)
     
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")

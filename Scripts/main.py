@@ -1,9 +1,21 @@
 from NeuralNetwork import NeuralNetwork
 from DataHandle import PreProcess
+import tkinter as tk
 
-def getData():
-    UserData = []
-    DataToGet = {'Gender: ': ["Male", "Female"],
+class GUI:
+    def __init__(self):    
+        self.root = tk.Tk()
+        self.root.protocol("WM_DELETE_WINDOW", exit)
+        self.root.title("Home Loan Approval Predictor")
+        self.root.geometry(f"700x500")
+
+        self.Model, self.PreProcessor = setup()
+
+    def LoadPredictionGUI(self):
+        self.PredictFrame = tk.Frame(self.root, borderwidth=2)
+
+        # generate Questionair 
+        DataToGet = {'Gender: ': ["Male", "Female"],
              'Married: ': ["Yes", "No"],
              'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
              'Education: ': ["Graduate", "Not Graduate"],
@@ -14,18 +26,46 @@ def getData():
              'Loan amount term (months): ': -1,
              'Credit history meet guildlines?: ': ["Yes", "No"],
              'Property area: ': ["Urban", "Semiurban", "Rural"]}
-    
-    print("Please enter the following data.")
-    for key, data in DataToGet.items():
-        print("\n------------------------------------------------------\n",key)
-        if type(data) == list:
-            for x, val in enumerate(data):
-                print(f" {x+1}). {val}")
-            choice = int(input("Choice: "))-1
-            UserData.append(data[choice])
+        self.UserData = [tk.StringVar() for x in range(len(DataToGet.keys()))]
+
+        index = 0
+        for key, data in DataToGet.items():
+            label = tk.Label(self.PredictFrame, text=key)
+            label.grid(row=index, column=0, padx=5, pady=5)
+
+            if type(data) == list:
+                for col, option in enumerate(data):
+                    rb = tk.Radiobutton(self.PredictFrame, text=option, value=option, variable=self.UserData[index])
+                    rb.grid(row=index, column=col+1, padx=5, pady=5)
+            else:
+                entry = tk.Entry(self.PredictFrame, textvariable=self.UserData[index]) # not appending to userdata
+                entry.grid(row=index, column=1, padx=5, pady=5)
+
+            index +=1
+
+        self.ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.ProcessUserData).grid(row=index, column=0, padx=5, pady=5)
+        
+        self.PredictFrame.pack()
+
+    def ProcessUserData(self):
+        self.CollectedData = []
+        for data in self.UserData:
+            self.CollectedData.append(data.get())
+        
+        if not ('' in self.CollectedData or len(self.CollectedData) != 11):
+            UserData = self.PreProcessor.encode(self.CollectedData)
+            self.Model.Predict(UserData)
+
+            result = self.Model.Result
+            if round(result) == 1:
+                txt = f"You a likely to be approved. Confidence = {result * 100}%"
+            else:
+                txt = f"You a unlikely to be approved. Confidence = {result * 100}%"
+
+            self.ResultLabel = tk.Label(self.PredictFrame, text=txt).grid(row=13, column=0, padx=5, pady=5)
         else:
-            UserData.append(int(input("Enter Data: ")))
-    return UserData
+            print(self.CollectedData)
+            print("Missing or incorrect data.")
 
 def SaveModel(Model, PreProcessor):
     FileName = input("Please enter a model name: ").lower()
@@ -44,58 +84,42 @@ def LoadModel(FileName):
         PreProcessor = PreProcess()
         Model = NeuralNetwork()
 
-        file = open(f"DataSet/Models/{FileName}.txt")
+        file = open(f"DataSet/Models/{FileName}.txt", "r")
         Model.Hiddenlayer.weights = eval(file.readline().rstrip())
         Model.Hiddenlayer.biases = eval(file.readline().rstrip())
         Model.Outputlayer.weights = eval(file.readline().rstrip())
         Model.Outputlayer.biases = eval(file.readline().rstrip())
         Model.Accuracy = eval(file.readline().rstrip())
         PreProcessor.ScalingData = eval(file.readline().rstrip())
+        file.close()
         return Model, PreProcessor
     
-    except FileNotFoundError:
+    except :
         print("File Doesnt exist. Returning to menu...")
         main()
 
-def getChoice():
-    while True:
-        try:
-            choice = int(input("Menu: \n1). Predict \n2). Load Model \n3). Load New Model \nEnter choice: "))
-            while choice < 1 or choice > 3:
-                choice = int(input("Invalid input. Enter choice: "))
-            return choice
-        except ValueError:
-            print("This is not a interger")
-        
 def setup():
-    choice = getChoice()
-    
-    if choice == 1:
-        Model, PreProcessor = LoadModel(FileName="default")
-    elif choice == 2:
-        FileName = input("Enter Model name: ").lower()
-        Model, PreProcessor = LoadModel(FileName)
-    elif choice == 3:
-        PreProcessor = PreProcess(New=True)
-        TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-
+    newModel = int(input("Menu: \n1). Load Default model \n2). Load Another Model \n3). Load new Model"))
+    if newModel == 1:
+        File = "default"
+        Model, PreProcessor = LoadModel(FileName=File)
+    elif newModel == 2: 
+        File = str(input("Enter Model name: "))
+        Model, PreProcessor = LoadModel(FileName=File)
+    elif newModel == 3:
         Model = NeuralNetwork()
-        Model.train(TrainX, TrainY, show=True)
-
-        CanSave = str(input("Save the model? (Y/N): ")).lower()
-        if CanSave == "y":
+        PreProcessor = PreProcess(New=True)
+        save = int(input("Save model:\n 1). Yes\n 2). No \nOption: "))
+        if save == 1:
             SaveModel(Model, PreProcessor)
-
-    print(f"Model Loaded Succesfully. (Acc={round(Model.Accuracy*100, 2)}%)")
+    else:
+        print("Incorrect option... Returning to menu.")
+        main()
     return Model, PreProcessor
 
 def main():
-    Model, PreProcessor = setup()
-
-    UserData = getData()
-    UserData = PreProcessor.encode(UserData)
-    Model.Predict(UserData)
-
-    print("Thank you for using this service.")
+    myGUI = GUI()
+    myGUI.LoadPredictionGUI()
+    myGUI.root.mainloop()
 
 main()

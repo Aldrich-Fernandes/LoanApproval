@@ -86,7 +86,7 @@ def setup():
         if CanSave == "y":
             SaveModel(Model, PreProcessor)
 
-    print(f"Model Loaded Succesfully. (Acc={round(Model.Accuracy*100, 2)})")
+    print(f"Model Loaded Succesfully. (Acc={round(Model.Accuracy*100, 2)}%)")
     return Model, PreProcessor
 
 def main():

@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, Epochs=75):
+    def __init__(self, Epochs=80):
         self.Accuracy = 0.0
         self.LowestLoss = 9999999
-        
+
         self.Epochs = Epochs
         self.losses = []
         self.Accuracies = []
@@ -19,7 +19,7 @@ class NeuralNetwork:
 
         self.Hiddenlayer = Layer(11, 7, ReLU())
         self.Outputlayer = Layer(7, 1, Sigmoid())
-        
+
         # Currently overfitting
     def train(self, TrainX, TrainY, show=False):
         X, Y = TrainX, TrainY
@@ -30,7 +30,7 @@ class NeuralNetwork:
 
         # Epochs
         for iteration in range(self.Epochs):
-        
+
             self.Hiddenlayer.forward(X)
             self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
@@ -41,7 +41,7 @@ class NeuralNetwork:
 
             self.losses.append(loss)
             self.Accuracies.append(self.Accuracy)
-            
+
             if loss < self.LowestLoss:
                 self.LowestLoss = loss
 
@@ -51,10 +51,10 @@ class NeuralNetwork:
 
             Optimizer.UpdateParameters(self.Hiddenlayer)
             Optimizer.UpdateParameters(self.Outputlayer)
-            
+
             if show:
                 self.DisplayResults(iteration+1)
-                
+
 
     def graph(self, sep=False):
         X = [x for x in range(1, self.Epochs+1)]
@@ -70,7 +70,7 @@ class NeuralNetwork:
             ax[1].legend()
             ax[2].legend()
         plt.show(block=False)
-        
+
 
     def test(self, TestX, TestY, showTests=False):
         self.Hiddenlayer.forward(TestX)
@@ -80,7 +80,7 @@ class NeuralNetwork:
         if showTests:
             for x in range(len(result)):
                 print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")
-        
+
         print("Test Accuracy: ", str(sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)))
 
     def Predict(self, UserData):
@@ -88,16 +88,16 @@ class NeuralNetwork:
         self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
-    
+
     def DisplayResults(self, iteration):
         print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
-        
+
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
-    
+
         self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0])
                        for i in range(NoOfInputs)]
-    
+
         self.biases = [0.0 for x in range(NoOfNeurons)]
         self.activation = activation
 

@@ -56,8 +56,9 @@ class BinaryCrossEntropy:
         vals2 = [x/y for x, y in zip([1-i for i in TrueVals], [1-j for j in dvalues])]
         self.dinputs = [v1+v2 for v1, v2 in zip(vals1, vals2)]
     
+
 class OptimizerSGD:
-    def __init__(self, learningRate=0.0075): # learning rate too high = no learning
+    def __init__(self, learningRate=0.01): # learning rate too high = no learning
         self.__LearningRate = learningRate
 
     def UpdateParameters(self, layer): ### Issue - result keeps increasing to 1 until crash
@@ -65,6 +66,8 @@ class OptimizerSGD:
         layer.weights = [[a+b for a, b in zip(layer.weights[x], AdjustedDWeight[x])] for x in range(len(layer.weights))]
 
         layer.biases = [a+b for a,b in zip(layer.biases, DM.Multiply(-self.__LearningRate, layer.dbiases))]
+
+
 
 def clipEdges(list):
     for index, val in enumerate(list):

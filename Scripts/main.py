@@ -1,3 +1,4 @@
+from re import M
 from NeuralNetwork import NeuralNetwork
 from DataHandle import PreProcess
 import tkinter as tk
@@ -6,14 +7,16 @@ class GUI:
     def __init__(self):    
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", exit)
-        self.root.title("Home Loan Approval Predictor")
-        self.root.geometry(f"700x500")
+        self.root.title("Home Loan Eligebility Application")
+        self.root.geometry(f"800x600")
 
         self.Model, self.PreProcessor = setup()
-
-    def LoadPredictionGUI(self):
         self.PredictFrame = tk.Frame(self.root, borderwidth=2)
 
+        self.resultVal = tk.StringVar()
+        self.resultVal.set("...")
+
+    def LoadPredictionGUI(self):
         # generate Questionair 
         DataToGet = {'Gender: ': ["Male", "Female"],
              'Married: ': ["Yes", "No"],
@@ -44,25 +47,29 @@ class GUI:
             index +=1
 
         self.ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.ProcessUserData).grid(row=index, column=0, padx=5, pady=5)
+        self.ResultLabel = tk.Label(self.PredictFrame, textvariable=self.resultVal).grid(row=13, column=0, padx=5, pady=5)
         
         self.PredictFrame.pack()
 
     def ProcessUserData(self):
         self.CollectedData = []
+        print(self.UserData)
         for data in self.UserData:
             self.CollectedData.append(data.get())
-        
+        print(self.CollectedData)
+
         if not ('' in self.CollectedData or len(self.CollectedData) != 11):
             UserData = self.PreProcessor.encode(self.CollectedData)
             self.Model.Predict(UserData)
 
             result = self.Model.Result
+            print(result)
             if round(result) == 1:
                 txt = f"You a likely to be approved. Confidence = {result * 100}%"
             else:
-                txt = f"You a unlikely to be approved. Confidence = {result * 100}%"
-
-            self.ResultLabel = tk.Label(self.PredictFrame, text=txt).grid(row=13, column=0, padx=5, pady=5)
+                txt = f"You a unlikely to be approved. Confidence = { (1-result) * 100}%"
+            print(txt)
+            self.resultVal.set(txt)
         else:
             print(self.CollectedData)
             print("Missing or incorrect data.")
@@ -93,28 +100,34 @@ def LoadModel(FileName):
         PreProcessor.ScalingData = eval(file.readline().rstrip())
         file.close()
         return Model, PreProcessor
-    
-    except :
+
+    except FileNotFoundError:
         print("File Doesnt exist. Returning to menu...")
-        main()
+        setup()
 
 def setup():
-    newModel = int(input("Menu: \n1). Load Default model \n2). Load Another Model \n3). Load new Model"))
+    newModel = int(input("Menu: \n1). Load Default model \n2). Load Another Model \n3). Load new Model \nOption: "))
     if newModel == 1:
         File = "default"
-        Model, PreProcessor = LoadModel(FileName=File)
+        Model, PreProcessor = LoadModel(File)
     elif newModel == 2: 
         File = str(input("Enter Model name: "))
-        Model, PreProcessor = LoadModel(FileName=File)
+        Model, PreProcessor = LoadModel(File)
     elif newModel == 3:
-        Model = NeuralNetwork()
         PreProcessor = PreProcess(New=True)
+        TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+        
+        Model = NeuralNetwork()
+        Model.train(TrainX, TrainY, show=True)
+        Model.test(TestX, TestY, showTests=True)
         save = int(input("Save model:\n 1). Yes\n 2). No \nOption: "))
         if save == 1:
             SaveModel(Model, PreProcessor)
     else:
         print("Incorrect option... Returning to menu.")
-        main()
+        setup()
+
+    print("Here")
     return Model, PreProcessor
 
 def main():
@@ -122,4 +135,48 @@ def main():
     myGUI.LoadPredictionGUI()
     myGUI.root.mainloop()
 
-main()
+# main()
+
+def ModelTest():
+    def getData():
+        UserData = []
+        DataToGet = {'Gender: ': ["Male", "Female"],
+                 'Married: ': ["Yes", "No"],
+                 'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
+                 'Education: ': ["Graduate", "Not Graduate"],
+                 'Self employed: ': ["Yes", "No"],
+                 'Applicant monthly income: ': -1,
+                 'Coapplicant monthly income: ': -1,
+                 'Loan amount (in thousands): ': -1,
+                 'Loan amount term (months): ': -1,
+                 'Credit history meet guildlines?: ': ["Yes", "No"],
+                 'Property area: ': ["Urban", "Semiurban", "Rural"]}
+
+        print("Please enter the following data.")
+        for key, data in DataToGet.items():
+            print("\n------------------------------------------------------\n",key)
+            if type(data) == list:
+                for x, val in enumerate(data):
+                    print(f" {x+1}). {val}")
+                choice = int(input("Choice: "))-1
+                UserData.append(data[choice])
+            else:
+                UserData.append(int(input("Enter Data: ")))
+        return UserData
+
+    # Enter the name of the model to load (Press ENTER to train a new one): 
+
+    PreProcessor = PreProcess(New=True)
+    TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+
+    model = NeuralNetwork(Epochs=400)
+    model.train(TrainX, TrainY, show=True)
+    model.graph()
+    model.test(TestX, TestY, showTests=True)
+
+    UserData = getData()
+    UserData = PreProcessor.encode(UserData)
+    model.Predict(UserData)
+    print(model.Result)
+
+ModelTest()

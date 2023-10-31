@@ -42,11 +42,11 @@ class GUI:
             index +=1
 
         ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.UpdateUserData).grid(row=index, column=0, padx=5, pady=5)
-        
+
 
         self.PredictFrame.pack()
 
-    def showResult(self, accuracy, result):
+    def showResult(self, result):
         if round(result) == 1:
             txt = f"You a likely to be approved. Confidence = {result * 100}%"
         else:

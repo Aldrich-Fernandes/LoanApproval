@@ -17,14 +17,14 @@ class PreProcess:
 
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
-        
+
         Dataset = self.AdjustSkew(Dataset)
-        
+
         # Feature Engineering
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
-        self.ReplaceMissingVals()
-        
+        #self.ReplaceMissingVals()
+
         self.ConvertToInterger()
 
         self.__TrainY = self.FeatureColumns.pop()
@@ -39,18 +39,18 @@ class PreProcess:
         index = 0
         NewDataset = []
         size = int(input("Enter the size of the dataset to use (50-600): "))
-        
+
         while len(NewDataset) != size:
             index = random.randint(0, len(dataset)-1)
             row = dataset[index]
             if (row[-1] == 'Y' and Zeros > Ones) or (row[-1] == 'N' and Ones > Zeros): 
                 NewDataset.append(dataset.pop(index))
-                
+
             if Zeros == Ones:
                 NewDataset.append(dataset.pop(index))
-        
+
         return NewDataset
-        
+
     def ReplaceMissingVals(self): 
         Numbers = '1234567890'
         for Column in self.FeatureColumns: # Selects the most common / mean input
@@ -63,16 +63,16 @@ class PreProcess:
                 ReplacementData = round(sum(FloatVals)/len(FloatVals))
             else:
                 ReplacementData = max(set(Column), key = Column.count)
-            
+
             for index, element in enumerate(Column):
                 if element == "":
                     Column[index] = ReplacementData
-                    
+
     def ConvertToInterger(self): 
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}
-        
+
         for ColumnIndex, features in enumerate(self.FeatureColumns): # for each column
             for ElementIndex, element in enumerate(features):
                 try:
@@ -81,14 +81,14 @@ class PreProcess:
                 except ValueError:
                     if element not in self.CategoricalFeatureKeys.keys():
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
-                    
+
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
 
     def Standardisation(self): # If feature has all same val, std = 0 hence zero devision error
         for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature])/len(feature)) - mean**2)**0.5
-            
+
             self.ScalingData['means'].append(mean)
             self.ScalingData['stds'].append(StandardDeviation)
 
@@ -126,7 +126,7 @@ class PreProcess:
             UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
 
         return UserData
-        
+
 
 class DataMethod:
     @staticmethod
@@ -135,7 +135,8 @@ class DataMethod:
         with open(path, "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
-                table.append(row)
+                if '' not in row:
+                    table.append(row)
         file.close()
 
         table.pop(0) # removes feature names
@@ -146,14 +147,14 @@ class DataMethod:
     @staticmethod
     def Transpose(array):
         return [[array[x][y] for x in range(len(array))] for y in range(len(array[0]))]
-    
+
     @staticmethod
     def DotProduct(arr1, arr2): # change from vector dot product to matrix dot product
         if type(arr1) != list: 
             arr1 = [float(arr1) for i in range(len(arr2))]
         elif type(arr2) != list:
             arr2 = [[float(arr2)] for i in range(len(arr1))]
-        
+
         arr2Shape = [len(arr2), len(arr2[0])]
         arr1Shape = [len(arr1), len(arr1[0])]
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
@@ -167,7 +168,7 @@ class DataMethod:
         else:
             print(f"Not capable of dotting as \n  Array1:{arr1Shape}\n  Array2:{arr2Shape}")
             input()
-    
+
     @staticmethod
     def Multiply(arr1, arr2):
         if type(arr1) != list:

@@ -46,14 +46,19 @@ class NeuralNetwork:
                 self.LowestLoss = loss
 
             BinaryLoss.backward(result, Y)
+            print(f"BinaryLoss : {BinaryLoss.dinputs}")
             self.Outputlayer.backward(BinaryLoss.dinputs)
+            print("HEre")
+            print(f"Outputlayer : {self.Outputlayer.dinputs}")
             self.Hiddenlayer.backward(self.Outputlayer.dinputs)
+            input(f"Hidden layer : {self.Hiddenlayer.dinputs}")
 
+            Optimizer.adjustLearningRate(iteration)
             Optimizer.UpdateParameters(self.Hiddenlayer)
             Optimizer.UpdateParameters(self.Outputlayer)
 
             if show:
-                self.DisplayResults(iteration+1)
+                self.DisplayResults(iteration, Optimizer.activeLearningRate)
 
 
     def graph(self, sep=False):
@@ -89,8 +94,8 @@ class NeuralNetwork:
 
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
-    def DisplayResults(self, iteration):
-        print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)}\n\n")
+    def DisplayResults(self, iteration, Lr):
+        print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)} Lr: {Lr}\n\n")
 
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
@@ -116,3 +121,4 @@ class Layer:
 
         self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
         self.dbiases = [sum(x) for x in dvalues]
+        input(self.dweights)

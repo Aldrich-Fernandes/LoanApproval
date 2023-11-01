@@ -9,7 +9,7 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "Scripts\\test.py",
+            "program": "Scripts\\main.py",
             "console": "integratedTerminal",
             "justMyCode": true
 

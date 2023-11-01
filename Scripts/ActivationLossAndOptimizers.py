@@ -58,7 +58,7 @@ class BinaryCrossEntropy:
     
 
 class OptimizerSGD:
-    def __init__(self, learningRate=0.01): # learning rate too high = no learning
+    def __init__(self, learningRate=0.0075): # learning rate too high = no learning
         self.__LearningRate = learningRate
 
     def UpdateParameters(self, layer): ### Issue - result keeps increasing to 1 until crash

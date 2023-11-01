@@ -67,7 +67,7 @@ class GUI:
             if round(result) == 1:
                 txt = f"You a likely to be approved. Confidence = {result * 100}%"
             else:
-                txt = f"You a unlikely to be approved. Confidence = { (1-result) * 100}%"
+                txt = f"You a unlikely to be approved. Confidence = {result * 100}%"
             print(txt)
             self.resultVal.set(txt)
         else:
@@ -135,7 +135,7 @@ def main():
     myGUI.LoadPredictionGUI()
     myGUI.root.mainloop()
 
-# main()
+#main()
 
 def ModelTest():
     def getData():
@@ -169,7 +169,7 @@ def ModelTest():
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
 
-    model = NeuralNetwork(Epochs=400)
+    model = NeuralNetwork()
     model.train(TrainX, TrainY, show=True)
     model.graph()
     model.test(TestX, TestY, showTests=True)

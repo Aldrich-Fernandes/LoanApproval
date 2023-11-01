@@ -52,10 +52,6 @@ class GUI:
         else:
             txt = f"You a unlikely to be approved. Confidence = {result * 100}%"
 
-        #print("Here")
-        #tk.Label(self.PredictFrame, text=f"Model Loaded Succesfully. (Acc={round(accuracy*100, 2)}%)", font=('Arial', 20)).grid(row=14, column=0)
-        #tk.Label(self.PredictFrame, text=txt).grid(row=15, column=0)
-
     def UpdateUserData(self):
         self.CollectedData = []
         for data in self.UserData:

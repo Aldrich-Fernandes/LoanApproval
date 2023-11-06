@@ -171,7 +171,7 @@ def ModelTest():
 
     model = NeuralNetwork()
     model.train(TrainX, TrainY, show=True)
-    model.graph()
+    model.graph(True)
     model.test(TestX, TestY, showTests=True)
 
     UserData = getData()

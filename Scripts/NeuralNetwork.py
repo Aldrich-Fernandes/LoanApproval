@@ -1,16 +1,17 @@
-import numpy as np
 
 from DataHandle import DataMethod
 from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, OptimizerSGD
 
 import matplotlib.pyplot as plt
+from math import sqrt
+from random import gauss
 
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, Epochs=80):
+    def __init__(self, Epochs=100):
         self.Accuracy = 0.0
-        self.LowestLoss = 9999999
+        self.loss = 9999999
 
         self.Epochs = Epochs
         self.losses = []
@@ -35,31 +36,26 @@ class NeuralNetwork:
             self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
             result = self.Outputlayer.activation.outputs.copy()
-            loss = BinaryLoss.forward(result, Y)
+            BinaryLoss.forward(result, Y)
+
+            self.loss = BinaryLoss.SampleLoss
 
             self.Accuracy = sum([1 for x,y in zip(result, Y) if round(x)==y]) / len(result)
 
-            self.losses.append(loss)
+            self.losses.append(self.loss)
             self.Accuracies.append(self.Accuracy)
 
-            if loss < self.LowestLoss:
-                self.LowestLoss = loss
-
             BinaryLoss.backward(result, Y)
-            print(f"BinaryLoss : {BinaryLoss.dinputs}")
             self.Outputlayer.backward(BinaryLoss.dinputs)
-            print("HEre")
-            print(f"Outputlayer : {self.Outputlayer.dinputs}")
             self.Hiddenlayer.backward(self.Outputlayer.dinputs)
-            input(f"Hidden layer : {self.Hiddenlayer.dinputs}")
 
             Optimizer.adjustLearningRate(iteration)
+            self.lrs.append(Optimizer.activeLearningRate)
             Optimizer.UpdateParameters(self.Hiddenlayer)
             Optimizer.UpdateParameters(self.Outputlayer)
 
             if show:
                 self.DisplayResults(iteration, Optimizer.activeLearningRate)
-
 
     def graph(self, sep=False):
         X = [x for x in range(1, self.Epochs+1)]
@@ -71,11 +67,11 @@ class NeuralNetwork:
             fig, ax = plt.subplots(3, 1, figsize=(10, 8))
             ax[0].plot(X, self.losses, label='Loss')
             ax[1].plot(X, self.Accuracies, label='Accuracy')
+            ax[2].plot(X, self.lrs, label='Learning Rate')
             ax[0].legend()
             ax[1].legend()
             ax[2].legend()
         plt.show(block=False)
-
 
     def test(self, TestX, TestY, showTests=False):
         self.Hiddenlayer.forward(TestX)
@@ -95,16 +91,24 @@ class NeuralNetwork:
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
     def DisplayResults(self, iteration, Lr):
-        print(f"Iteration: {iteration} Loss: {round(self.LowestLoss, 5)} Accuracy: {round(self.Accuracy, 5)} Lr: {Lr}\n\n")
+        print(f"Iteration: {iteration} Loss: {round(self.loss, 5)} Accuracy: {round(self.Accuracy, 5)} Lr: {Lr}\n\n")
 
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):
+        self.activation = activation
 
-        self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0])
-                       for i in range(NoOfInputs)]
+        # Xavier/Glorot weight initialization
+        if self.activation.getID() == "ReLU":
+            Numerator = 2
+        elif self.activation.getID() == "Sigmoid":
+            Numerator = 1
+
+        scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
+        self.weights = [[gauss(0, scale) for x in range(NoOfNeurons)] for y in range(NoOfInputs)]
+
+        #self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0]) for i in range(NoOfInputs)]
 
         self.biases = [0.0 for x in range(NoOfNeurons)]
-        self.activation = activation
 
     def forward(self, inputs):
         self.inputs = inputs.copy()
@@ -121,4 +125,4 @@ class Layer:
 
         self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
         self.dbiases = [sum(x) for x in dvalues]
-        input(self.dweights)
+

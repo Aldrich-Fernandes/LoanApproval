@@ -1,4 +1,3 @@
-from re import M
 from NeuralNetwork import NeuralNetwork
 from DataHandle import PreProcess
 import tkinter as tk
@@ -48,7 +47,7 @@ class GUI:
 
         self.ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.ProcessUserData).grid(row=index, column=0, padx=5, pady=5)
         self.ResultLabel = tk.Label(self.PredictFrame, textvariable=self.resultVal).grid(row=13, column=0, padx=5, pady=5)
-        
+
         self.PredictFrame.pack()
 
     def ProcessUserData(self):
@@ -116,7 +115,7 @@ def setup():
     elif newModel == 3:
         PreProcessor = PreProcess(New=True)
         TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-        
+
         Model = NeuralNetwork()
         Model.train(TrainX, TrainY, show=True)
         Model.test(TestX, TestY, showTests=True)
@@ -168,7 +167,7 @@ def ModelTest():
 
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-
+    
     model = NeuralNetwork()
     model.train(TrainX, TrainY, show=True)
     model.graph(True)

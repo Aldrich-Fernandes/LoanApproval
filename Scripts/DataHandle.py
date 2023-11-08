@@ -79,7 +79,7 @@ class PreProcess:
                     self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
 
                 except ValueError:
-                    if element not in self.CategoricalFeatureKeys.keys():
+                    if element not in self.CategoricalFeatureKeys.keys(): # use abs()
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
 
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
@@ -98,7 +98,7 @@ class PreProcess:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
 
-    def SplitData(self, percent=0.1): # 80-20
+    def SplitData(self, percent=0.0): # 80-20
         NumOfTrainData = round(len(self.__TrainX) * percent)
         TestX = [self.__TrainX.pop() for i in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for i in range(NumOfTrainData)]
@@ -150,19 +150,20 @@ class DataMethod:
 
     @staticmethod
     def DotProduct(arr1, arr2): # change from vector dot product to matrix dot product
-        if type(arr1) != list: 
-            arr1 = [float(arr1) for i in range(len(arr2))]
+        if not isinstance(arr1, list): 
+            arr1 = [[float(arr1) for i in range(len(arr2))] for j in range(len(arr2[0]))] # if arr2 = (2,3) creates arr = (3, 2)
         elif type(arr2) != list:
             arr2 = [[float(arr2)] for i in range(len(arr1))]
 
-        arr2Shape = [len(arr2), len(arr2[0])]
-        arr1Shape = [len(arr1), len(arr1[0])]
+        arr1Shape = len(arr1), len(arr1[0])
+        arr2Shape = len(arr2), len(arr2[0])
+
+        if arr1Shape[1] != arr2Shape[0]:
+            raise ValueError("Matrix dimensions are not compatible for dot product.")
+
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
-            Output = []
-            for rowIndex, row in enumerate(arr1):
-                Output.append([])
-                for column in DataMethod.Transpose(arr2):
-                    Output[rowIndex].append(sum(a*b for a,b in zip(row, column)))
+            Output = [[sum(a*b for a,b in zip(row, column)) for column in DataMethod.Transpose(arr2)] for row in arr1]
+
             return Output
 
         else:

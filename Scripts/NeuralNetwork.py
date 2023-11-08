@@ -26,12 +26,13 @@ class NeuralNetwork:
         X, Y = TrainX, TrainY
 
         # For backpass
-        BinaryLoss = BinaryCrossEntropy()
-        Optimizer = OptimizerSGD()
+        BinaryLoss = BinaryCrossEntropy() # Loss function
+        Optimizer = OptimizerSGD()          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
 
+            # Forward Pass
             self.Hiddenlayer.forward(X)
             self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
@@ -45,6 +46,7 @@ class NeuralNetwork:
             self.losses.append(self.loss)
             self.Accuracies.append(self.Accuracy)
 
+            # Backward Pass ---- Breaks here
             BinaryLoss.backward(result, Y)
             self.Outputlayer.backward(BinaryLoss.dinputs)
             self.Hiddenlayer.backward(self.Outputlayer.dinputs)
@@ -111,7 +113,7 @@ class Layer:
         self.biases = [0.0 for x in range(NoOfNeurons)]
 
     def forward(self, inputs):
-        self.inputs = inputs.copy()
+        self.inputs = inputs.copy() # (90x11)
 
         self.output = [[a+b for a,b in zip(sample, self.biases)] for sample in DM.DotProduct(inputs, self.weights)] # add biases  -- (10x7)/ (samplesize x NOofNeurons)        
 
@@ -123,6 +125,8 @@ class Layer:
 
         self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.weights))
 
-        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
-        self.dbiases = [sum(x) for x in dvalues]
+        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) # breaks here
 
+        # result = np.sum(dvalues, axis=0, keepdims=True)
+        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)] ## wrong - hidden suold hacve 7 but gets 180
+        

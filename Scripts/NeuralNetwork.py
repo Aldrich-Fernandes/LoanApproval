@@ -9,7 +9,7 @@ from random import gauss
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, Epochs=100):
+    def __init__(self, Epochs=35):
         self.Accuracy = 0.0
         self.loss = 9999999
 
@@ -18,9 +18,8 @@ class NeuralNetwork:
         self.Accuracies = []
         self.lrs = []
 
-        self.Hiddenlayer1 = Layer(11, 7, ReLU())
-        self.Hiddenlayer2 = Layer(7, 4, ReLU())
-        self.Outputlayer = Layer(4, 1, Sigmoid())
+        self.Hiddenlayer = Layer(11, 8, ReLU())
+        self.Outputlayer = Layer(8, 1, Sigmoid())
 
         # Currently overfitting
     def train(self, TrainX, TrainY, show=False):
@@ -34,9 +33,8 @@ class NeuralNetwork:
         for iteration in range(self.Epochs):
 
             # Forward Pass
-            self.Hiddenlayer1.forward(X)
-            self.Hiddenlayer2.forward(self.Hiddenlayer1.activation.outputs)
-            self.Outputlayer.forward(self.Hiddenlayer2.activation.outputs)
+            self.Hiddenlayer.forward(X)
+            self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
             result = self.Outputlayer.activation.outputs.copy()
             BinaryLoss.forward(result, Y)
@@ -51,14 +49,11 @@ class NeuralNetwork:
             # Backward Pass ---- Breaks here
             BinaryLoss.backward(result, Y)
             self.Outputlayer.backward(BinaryLoss.dinputs)
-            self.Hiddenlayer2.backward(self.Outputlayer.dinputs)
-            self.Hiddenlayer1.backward(self.Hiddenlayer2.dinputs)
+            self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
             Optimizer.adjustLearningRate(iteration)
             self.lrs.append(Optimizer.activeLearningRate)
-
-            Optimizer.UpdateParameters(self.Hiddenlayer1)
-            Optimizer.UpdateParameters(self.Hiddenlayer2)
+            Optimizer.UpdateParameters(self.Hiddenlayer)
             Optimizer.UpdateParameters(self.Outputlayer)
 
             if show:
@@ -81,9 +76,8 @@ class NeuralNetwork:
         plt.show(block=False)
 
     def test(self, TestX, TestY, showTests=False):
-        self.Hiddenlayer1.forward(TestX)
-        self.Hiddenlayer2.forward(self.Hiddenlayer1.activation.outputs)
-        self.Outputlayer.forward(self.Hiddenlayer2.activation.outputs)
+        self.Hiddenlayer.forward(TestX)
+        self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
         result = self.Outputlayer.activation.outputs.copy()
         if showTests:

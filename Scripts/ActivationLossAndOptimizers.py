@@ -68,7 +68,7 @@ class BinaryCrossEntropy:  # Measure how well the model is.
 
 
 class OptimizerSGD: # Broken
-    def __init__(self, InitialLearningRate=1e-2, decay=1e-4, minimumLearningRate=1e-7): # learning rate too high = no learning
+    def __init__(self, InitialLearningRate=0.01, decay=0.0075, minimumLearningRate=1e-5): # learning rate too high = no learning
         self.InitialLearningRate = InitialLearningRate
         self.minimumLearningRate = minimumLearningRate
         self.decay = decay
@@ -77,10 +77,13 @@ class OptimizerSGD: # Broken
 
     def adjustLearningRate(self, iter):
         if self.decay != 0:
-            self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter),
-                                           self.minimumLearningRate)
+            # Linear 
+            self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter), self.minimumLearningRate)
 
-    def UpdateParameters(self, layer): ### Issue - result keeps increasing to 1 until crash
+            # Exponentail:  INitail * e^(-(decay)(iter))
+            # self.activeLearningRate = max(self.InitialLearningRate * exp(-(self.decay * iter)), self.minimumLearningRate)
+
+    def UpdateParameters(self, layer):
         # W(2darry) -= learning_rate(int) * dW(2darray)
         AdjustedDWeight = [DM.Multiply(self.activeLearningRate, sample) for sample in layer.dweights]
         layer.weights = [[a-b for a, b in zip(layer.weights[x], AdjustedDWeight[x])] for x in range(len(layer.weights))]

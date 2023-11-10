@@ -17,33 +17,3 @@ def DotProduct(arr1, arr2): # change from vector dot product to matrix dot produ
     else:
         print(f"Not capable of dotting as \n  Array1:{arr1Shape}\n  Array2:{arr2Shape}")
         input()
-
-def optimizer():
-    import matplotlib.pyplot as plt
-
-    # Define the number of epochs and initial learning rate
-    num_epochs = 100
-    initial_learning_rate = 0.01
-
-    # Create a learning rate schedule with linear decay
-    def learning_rate_schedule(epoch):
-        return max(InitialLearningRate / (1 + decay * iter),
-                                           minimumLearningRate)
-
-    # Lists to store the learning rates and epochs
-    learning_rates = []
-    epochs = list(range(num_epochs))
-
-    # Generate learning rates for each epoch
-    for epoch in range(num_epochs):
-        current_learning_rate = learning_rate_schedule(epoch)
-        learning_rates.append(current_learning_rate)
-
-    # Plot the learning rate curve
-    plt.plot(epochs, learning_rates)
-    plt.xlabel('Epoch')
-    plt.ylabel('Learning Rate')
-    plt.title('Learning Rate Schedule')
-    plt.show()
-
-optimizer()

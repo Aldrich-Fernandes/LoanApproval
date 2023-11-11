@@ -5,6 +5,9 @@ class PreProcess:
         #Initial DataHolders
         self.__TrainX = []
         self.__TrainY = []
+        self.__featuresToRemove = ["Loan_ID"
+                                   #, "Self_Employed", "Gender", "Education", "Married", "Dependents"
+                                   ]
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}
@@ -18,6 +21,7 @@ class PreProcess:
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
 
+        Dataset = self.RemoveFeatures(Dataset)
         Dataset = self.AdjustSkew(Dataset)
 
         # Feature Engineering
@@ -32,6 +36,16 @@ class PreProcess:
         self.Standardisation()
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
+
+    def RemoveFeatures(self, Dataset):
+        features = DataMethod.Transpose(Dataset)
+        filteredFeatures = []
+        for row in features:
+            if row[0] not in self.__featuresToRemove:
+                filteredFeatures.append(row[1:])
+                
+        return DataMethod.Transpose(filteredFeatures)
+
 
     def AdjustSkew(self, dataset):
         Ones = 0
@@ -139,9 +153,6 @@ class DataMethod:
                     table.append(row)
         file.close()
 
-        table.pop(0) # removes feature names
-        for index, row in enumerate(table): #removes loan ID from array
-            table[index] = row[1:]
         return table
 
     @staticmethod
@@ -159,7 +170,7 @@ class DataMethod:
         arr2Shape = len(arr2), len(arr2[0])
 
         if arr1Shape[1] != arr2Shape[0]:
-            raise ValueError("Matrix dimensions are not compatible for dot product.")
+            raise ValueError(f"Matrix dimensions are not compatible for dot product {arr1Shape} and {arr2Shape}.")
 
         if arr1Shape[1] == arr2Shape[0]: # valid matrixes to multiply
             Output = [[sum(a*b for a,b in zip(row, column)) for column in DataMethod.Transpose(arr2)] for row in arr1]

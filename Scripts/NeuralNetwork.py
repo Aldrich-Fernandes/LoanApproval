@@ -76,6 +76,7 @@ class NeuralNetwork:
         plt.show(block=False)
 
     def test(self, TestX, TestY, showTests=False):
+        input(self.Outputlayer.activation.outputs)
         self.Hiddenlayer.forward(TestX)
         self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
@@ -107,10 +108,11 @@ class Layer:
 
         scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
         self.weights = [[gauss(0, scale) for x in range(NoOfNeurons)] for y in range(NoOfInputs)]
-
-        #self.weights = [DM.Multiply(0.01, np.random.randn(1, NoOfNeurons).tolist()[0]) for i in range(NoOfInputs)]
-
         self.biases = [0.0 for x in range(NoOfNeurons)]
+
+        # Velocity for use with optimizer 
+        self.weightsVelocity = [[0.0 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
+        self.biasesVelocity = [0.0 for _ in range(NoOfNeurons)]
 
     def forward(self, inputs):
         self.inputs = inputs.copy() # (90x11)

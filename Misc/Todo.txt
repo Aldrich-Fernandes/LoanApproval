@@ -1,8 +1,6 @@
 TODO:
 
-    Add optimisers
-
-    Allow for data testing 
+    Add batch
 
     add l1 and l2 reguariastion
 

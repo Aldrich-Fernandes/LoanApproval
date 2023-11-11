@@ -68,35 +68,44 @@ class BinaryCrossEntropy:  # Measure how well the model is.
 
 
 class OptimizerSGD: # Broken
-    def __init__(self, InitialLearningRate=1e-3, decay=1e-4, minimumLearningRate=1e-5): # learning rate too high = no learning
+    def __init__(self, InitialLearningRate=1e-3, decay=1e-4, minimumLearningRate=1e-5, momentum=0.8): # learning rate too high = no learning
         self.InitialLearningRate = InitialLearningRate
         self.minimumLearningRate = minimumLearningRate
         self.decay = decay
+        self.momentum = momentum
 
         self.activeLearningRate = InitialLearningRate
 
     def adjustLearningRate(self, iter):
-        if self.decay != 0:
-            # Linear 
-            self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter), self.minimumLearningRate)
+        # Linear 
+        self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter), self.minimumLearningRate)
 
-            # Exponentail:  INitail * e^(-(decay)(iter))
-            # self.activeLearningRate = max(self.InitialLearningRate * exp(-(self.decay * iter)), self.minimumLearningRate)
+        # Exponentail:  INitail * e^(-(decay)(iter))
+        # self.activeLearningRate = max(self.InitialLearningRate * exp(-(self.decay * iter)), self.minimumLearningRate)
 
     def UpdateParameters(self, layer):
-        # W(2darry) -= learning_rate(int) * dW(2darray)
         AdjustedDWeight = [DM.Multiply(self.activeLearningRate, sample) for sample in layer.dweights]
-        layer.weights = [[a-b for a, b in zip(layer.weights[x], AdjustedDWeight[x])] for x in range(len(layer.weights))]
+        AdjustedDBiases = DM.Multiply(self.activeLearningRate, layer.dbiases)
 
-        # b -= learning_rate * db
+        #layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
+        #layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases  
         
-        layer.biases = [a-b for a, b in zip(layer.biases, DM.Multiply(self.activeLearningRate, layer.dbiases))]
-        #layer.biases = [a+b for a,b in zip(layer.biases, DM.Multiply(-self.activeLearningRate, layer.dbiases))]
+
+        # Momentum * 2d array + AdjustedDWeights
+        newVelocity = [[self.momentum * element for element in row] for row in layer.weightsVelocity]
+        layer.weightsVelocity = [[a+b for a,b in zip(velocityRow, dweightsRow)] 
+                                 for velocityRow, dweightsRow in zip(newVelocity, AdjustedDWeight)]
+        
+        layer.biasesVelocity = [a+b for a,b in zip([self.momentum*bias for bias in layer.biasesVelocity], AdjustedDBiases)]
+
+        layer.weights = [[a-b for a, b in zip(layer.weights[x], layer.weightsVelocity[x])] for x in range(len(layer.weights))]
+        layer.biases = [a-b for a, b in zip(layer.biases, layer.biasesVelocity)]
+        
 
 def clipEdges(list):
     for index, val in enumerate(list):
-        if val < 1e-10:
-            list[index] = 1e-10
-        elif val > 1 - (1e-10):
-            list[index] = 1 - (1e-10)
+        if val < 1e-64:
+            list[index] = 1e-64
+        elif val > 1 - (1e-64):
+            list[index] = 1 - (1e-64)
     return list

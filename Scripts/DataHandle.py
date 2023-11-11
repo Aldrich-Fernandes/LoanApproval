@@ -114,8 +114,8 @@ class PreProcess:
 
     def SplitData(self, percent=0.0): # 80-20
         NumOfTrainData = round(len(self.__TrainX) * percent)
-        TestX = [self.__TrainX.pop() for i in range(NumOfTrainData)]
-        TestY = [self.__TrainY.pop() for i in range(NumOfTrainData)]
+        TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
+        TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
         return TestX, TestY
 
     def getData(self, split=0.1):
@@ -182,7 +182,7 @@ class DataMethod:
             input()
 
     @staticmethod
-    def Multiply(arr1, arr2):
+    def Multiply(arr1, arr2): # male so that can multiply -- 1d x 2d -- 1d x 1d -- 1 x 1d -- 1 x 2d 
         if type(arr1) != list:
             arr1 = [float(arr1) for x in range(len(arr2))]
-        return [round(a*b, 24) for a,b in zip(arr1, arr2)]
+        return [a*b for a,b in zip(arr1, arr2)]

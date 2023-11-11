@@ -139,17 +139,18 @@ def main():
 def ModelTest():
     def getData():
         UserData = []
-        DataToGet = {'Gender: ': ["Male", "Female"],
-                 'Married: ': ["Yes", "No"],
-                 'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
-                 'Education: ': ["Graduate", "Not Graduate"],
-                 'Self employed: ': ["Yes", "No"],
+        DataToGet = {#'Gender: ': ["Male", "Female"],
+                 #'Married: ': ["Yes", "No"],
+                 #'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
+                 #'Education: ': ["Graduate", "Not Graduate"],
+                 #'Self employed: ': ["Yes", "No"],
                  'Applicant monthly income: ': -1,
                  'Coapplicant monthly income: ': -1,
                  'Loan amount (in thousands): ': -1,
                  'Loan amount term (months): ': -1,
                  'Credit history meet guildlines?: ': ["Yes", "No"],
-                 'Property area: ': ["Urban", "Semiurban", "Rural"]}
+                 'Property area: ': ["Urban", "Semiurban", "Rural"]
+                 }
 
         print("Please enter the following data.")
         for key, data in DataToGet.items():
@@ -174,7 +175,9 @@ def ModelTest():
     model.test(TestX, TestY, showTests=True)
 
     UserData = getData()
+    input(UserData)
     UserData = PreProcessor.encode(UserData)
+    input(UserData)
     model.Predict(UserData)
     print(model.Result)
 

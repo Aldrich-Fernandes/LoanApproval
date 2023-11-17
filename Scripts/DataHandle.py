@@ -182,7 +182,7 @@ class DataMethod:
             input()
 
     @staticmethod
-    def Multiply(arr1, arr2): # male so that can multiply -- 1d x 2d -- 1d x 1d -- 1 x 1d -- 1 x 2d 
-        if type(arr1) != list:
+    def Multiply(arr1, arr2): # make so that can multiply -- 1d x 2d -- 1d x 1d -- 1 x 1d -- 1 x 2d 
+        if type(arr1) != list: # USe recursive algorithm for 2d arrays
             arr1 = [float(arr1) for x in range(len(arr2))]
         return [a*b for a,b in zip(arr1, arr2)]

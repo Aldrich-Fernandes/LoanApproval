@@ -4,7 +4,7 @@ from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, Optim
 
 import matplotlib.pyplot as plt
 from math import sqrt
-from random import gauss
+from random import gauss, shuffle
 
 DM = DataMethod()
 
@@ -22,17 +22,21 @@ class NeuralNetwork:
         self.Outputlayer = Layer(8, 1, Sigmoid())
 
         # Currently overfitting
-    def train(self, TrainX, TrainY, show=False):
-        X, Y = TrainX, TrainY
+    def train(self, X, Y, show=False):
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD()          # Optimizer
+        Optimizer = OptimizerSGD(decay=0, momentum=0)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
-
             # Forward Pass
+
+            a = list(zip(X, Y))
+            shuffle(a)
+            X, Y = zip(*a)
+            X, Y = list(X), list(Y)
+            
             self.Hiddenlayer.forward(X)
             self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
@@ -66,7 +70,7 @@ class NeuralNetwork:
             plt.plot(X, self.Accuracies, label='Accuracy')
             plt.legend()
         else:
-            fig, ax = plt.subplots(3, 1, figsize=(10, 8))
+            _, ax = plt.subplots(3, 1, figsize=(10, 8))
             ax[0].plot(X, self.losses, label='Loss')
             ax[1].plot(X, self.Accuracies, label='Accuracy')
             ax[2].plot(X, self.lrs, label='Learning Rate')

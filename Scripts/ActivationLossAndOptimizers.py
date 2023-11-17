@@ -1,4 +1,4 @@
-from math import log, exp
+from math import exp, log
 from abc import ABC, abstractmethod
 
 from DataHandle import DataMethod as DM
@@ -50,7 +50,7 @@ class Sigmoid(Activation):
 class BinaryCrossEntropy:  # Measure how well the model is.
     def forward(self, predictions, TrueVals):
         # Remove any 0s or 1s to avoid arithmethic errors
-        predictions = clipEdges(predictions)
+        predictions = clipEdges(predictions) # to 1e-16
 
         # Formula used: -(true * log(Predicted) + (1 - true) * log(1 - Predicted))
         SampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) for tVal, pVal in zip(TrueVals, predictions)]
@@ -63,8 +63,6 @@ class BinaryCrossEntropy:  # Measure how well the model is.
 
         # Formula: -(true / dvalues) + ( (1-true) / (1-dvalues))
         self.dinputs = [-(Tval/Dval) + (1-Tval)/(1-Dval) for Tval, Dval in zip(TrueVals, dvalues)]
-
-        # dimension = n x 1 ?
 
 
 class OptimizerSGD: # Broken
@@ -84,28 +82,40 @@ class OptimizerSGD: # Broken
         # self.activeLearningRate = max(self.InitialLearningRate * exp(-(self.decay * iter)), self.minimumLearningRate)
 
     def UpdateParameters(self, layer):
+        # Adjust Weights    |    layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
+
+        # self.activeLearningRate * layer.dweights
         AdjustedDWeight = [DM.Multiply(self.activeLearningRate, sample) for sample in layer.dweights]
+        # self.activeLearningRate * layer.dbiases
         AdjustedDBiases = DM.Multiply(self.activeLearningRate, layer.dbiases)
 
-        #layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
-        #layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases  
+        if self.momentum != 0:
+            # Adjust Weights    |    layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
+
+            # self.momentum * layer.weightsVelocity
+            newVelocity = [DM.Multiply(self.momentum, row) for row in layer.weightsVelocity]
+            
+            layer.weightsVelocity = [[a-b for a,b in zip(velocityRow, dweightsRow)] 
+                                    for velocityRow, dweightsRow in zip(newVelocity, AdjustedDWeight)]
+            
+
+            # Adjust Biases    |    layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases
+
+            # self.momentum * layer.biasesVelocity
+            layer.biasesVelocity = [a-b for a,b in zip(DM.Multiply(self.momentum, layer.biases), AdjustedDBiases)]
+
+            # Final updates
+            layer.weights = [[a-b for a, b in zip(layer.weights[x], layer.weightsVelocity[x])] for x in range(len(layer.weights))]
+            layer.biases = [a-b for a, b in zip(layer.biases, layer.biasesVelocity)]
+        else:
+            layer.weights = [[a-b for a, b in zip(layer.weights[x], AdjustedDWeight[x])] for x in range(len(layer.weights))]
+            layer.biases = [a-b for a, b in zip(layer.biases, AdjustedDBiases)]
         
 
-        # Momentum * 2d array + AdjustedDWeights
-        newVelocity = [[self.momentum * element for element in row] for row in layer.weightsVelocity]
-        layer.weightsVelocity = [[a+b for a,b in zip(velocityRow, dweightsRow)] 
-                                 for velocityRow, dweightsRow in zip(newVelocity, AdjustedDWeight)]
-        
-        layer.biasesVelocity = [a+b for a,b in zip([self.momentum*bias for bias in layer.biasesVelocity], AdjustedDBiases)]
-
-        layer.weights = [[a-b for a, b in zip(layer.weights[x], layer.weightsVelocity[x])] for x in range(len(layer.weights))]
-        layer.biases = [a-b for a, b in zip(layer.biases, layer.biasesVelocity)]
-        
-
-def clipEdges(list):
+def clipEdges(list, scale=1e-7):
     for index, val in enumerate(list):
-        if val < 1e-64:
-            list[index] = 1e-64
-        elif val > 1 - (1e-64):
-            list[index] = 1 - (1e-64)
+        if val < scale:
+            list[index] = scale
+        elif val > 1 - (scale):
+            list[index] = 1 - (scale)
     return list

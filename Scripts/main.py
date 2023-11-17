@@ -169,16 +169,16 @@ def ModelTest():
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
     
-    model = NeuralNetwork()
+    model = NeuralNetwork(Epochs=40)
     model.train(TrainX, TrainY, show=True)
     model.graph(True)
     model.test(TestX, TestY, showTests=True)
 
-    UserData = getData()
-    input(UserData)
-    UserData = PreProcessor.encode(UserData)
-    input(UserData)
-    model.Predict(UserData)
-    print(model.Result)
+    #UserData = getData()
+    #input(UserData)
+    #UserData = PreProcessor.encode(UserData)
+    #input(UserData)
+    #model.Predict(UserData)
+    #print(model.Result)
 
 ModelTest()

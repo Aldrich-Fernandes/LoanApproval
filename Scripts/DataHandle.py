@@ -50,18 +50,20 @@ class PreProcess:
     def AdjustSkew(self, dataset):
         Ones = 0
         Zeros = 0
-        index = 0
         NewDataset = []
-        size = int(input("Enter the size of the dataset to use (50-600): "))
+        size = 100 # int(input("Enter the size of the dataset to use (50-600): "))
 
         while len(NewDataset) != size:
             index = random.randint(0, len(dataset)-1)
             row = dataset[index]
-            if (row[-1] == 'Y' and Zeros > Ones) or (row[-1] == 'N' and Ones > Zeros): 
+            
+            if row[-1] == 'Y' and Ones != size // 2: 
                 NewDataset.append(dataset.pop(index))
+                Ones += 1
 
-            if Zeros == Ones:
+            elif row[-1] == 'N' and Zeros != size // 2:
                 NewDataset.append(dataset.pop(index))
+                Zeros += 1
 
         return NewDataset
 
@@ -108,7 +110,7 @@ class PreProcess:
 
             try:
                 self.FeatureColumns[ind] = [float((i-mean)/StandardDeviation) for i in feature]
-            except ZeroDivisionError:
+            except ZeroDivisionError: # If feature has all same val, std = 0 hence zero devision error
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
 
@@ -182,7 +184,17 @@ class DataMethod:
             input()
 
     @staticmethod
-    def Multiply(arr1, arr2): # make so that can multiply -- 1d x 2d -- 1d x 1d -- 1 x 1d -- 1 x 2d 
-        if type(arr1) != list: # USe recursive algorithm for 2d arrays
-            arr1 = [float(arr1) for x in range(len(arr2))]
-        return [a*b for a,b in zip(arr1, arr2)]
+    def Multiply(arr1, arr2): # dimensions of arr1 Must be <= dimensions of arr2
+        if not isinstance(arr1, list): # Ensures dimentions are atleast 1 dimensional
+            if isinstance(arr2[0], list): # uses inside lenght of a row
+                arr1 = [float(arr1) for _ in range(len(arr2[0]))]
+            else:
+                arr1 = [float(arr1) for _ in range(len(arr2))]
+
+        if isinstance(arr2[0], list):  # Check if arr2 is a 2D array
+            if isinstance(arr1[0], list):  # For 2d x 2d
+                return [DataMethod.Multiply(row1, row2) for row1, row2 in zip(arr1, arr2)]
+            else: # For 1d x 2d
+                return [DataMethod.Multiply(arr1, row) for row in arr2]
+        else: # For 1d x 1d
+            return [a * b for a, b in zip(arr1, arr2)]

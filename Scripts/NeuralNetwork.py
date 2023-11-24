@@ -26,7 +26,7 @@ class NeuralNetwork:
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD(decay=0, momentum=0)          # Optimizer
+        Optimizer = OptimizerSGD(momentum=0.05)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
@@ -111,17 +111,17 @@ class Layer:
             Numerator = 1
 
         scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
-        self.weights = [[gauss(0, scale) for x in range(NoOfNeurons)] for y in range(NoOfInputs)]
-        self.biases = [0.0 for x in range(NoOfNeurons)]
+        self.__weights = [[gauss(0, scale) for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
+        self.__biases = [0.0 for x in range(NoOfNeurons)]
 
         # Velocity for use with optimizer 
-        self.weightsVelocity = [[0.0 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.biasesVelocity = [0.0 for _ in range(NoOfNeurons)]
+        self.__weightsVelocity = [[0.0 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
+        self.__biasesVelocity = [0.0 for _ in range(NoOfNeurons)]
 
     def forward(self, inputs):
         self.inputs = inputs.copy() # (90x11)
 
-        self.output = [[a+b for a,b in zip(sample, self.biases)] for sample in DM.DotProduct(inputs, self.weights)] # add biases  -- (10x7)/ (samplesize x NOofNeurons)        
+        self.output = [[a+b for a,b in zip(sample, self.__biases)] for sample in DM.DotProduct(inputs, self.__weights)] # add biases  -- (10x7)/ (samplesize x NOofNeurons)        
 
         self.activation.forward(self.output)
 
@@ -129,10 +129,22 @@ class Layer:
         self.activation.backward(dvalues)
         dvalues = self.activation.dinputs.copy()
 
-        self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.weights))
+        self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights))
 
         self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) # breaks here
 
         # result = np.sum(dvalues, axis=0, keepdims=True)
         self.dbiases = [sum(x) for x in DM.Transpose(dvalues)] ## wrong - hidden suold hacve 7 but gets 180
+
+    def getVelocites(self):
+        return self.__weightsVelocity, self.__biasesVelocity
+    
+    def setVelocities(self, veloWeights, veloBiases):
+        self.__weightsVelocity, self.__biasesVelocity = veloWeights, veloBiases
+
+    def getWeightsAndBaises(self):
+        return self.__weights, self.__biases
+    
+    def setWeightsAndBaises(self, weights, biases):
+        self.__weights, self.__biases = weights, biases
         

@@ -57,15 +57,16 @@ class BinaryCrossEntropy:  # Measure how well the model is.
 
         self.SampleLoss = sum(SampleLoss) / len(SampleLoss) # Average of all samples
 
-    def backward(self, dvalues, TrueVals): # Dirative of above Formula
+    def backward(self, predicted, TrueVals): # Dirative of above Formula
 
-        dvalues = clipEdges(dvalues)
+        predicted = clipEdges(predicted)
+        
+        # Formula == (PredictVal - Tval) / ((1-PredictVal) * PredictVal)
+        self.dinputs = [(PredictVal - Tval) / ((1-PredictVal) * PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
-        # Formula: -(true / dvalues) + ( (1-true) / (1-dvalues))
-        self.dinputs = [-(Tval/Dval) + (1-Tval)/(1-Dval) for Tval, Dval in zip(TrueVals, dvalues)]
+        # Formula: -(true / predicted) + ( (1-true) / (1-predicted))
+        #self.dinputs = [-(Tval/PredictVal) + (1-Tval)/(1-PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
-
-from math import exp
 
 class OptimizerSGD:
     def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):

@@ -35,10 +35,10 @@ class NeuralNetwork:
             lossHold = []
             learningRateHold = []
             
-            a = list(zip(X, Y))
-            shuffle(a)
-            X, Y = zip(*a)
-            X, Y = list(X), list(Y)
+            #a = list(zip(X, Y))
+            #shuffle(a)
+            #X, Y = zip(*a)
+            #X, Y = list(X), list(Y)
         
             for i in range(0, sampleSize, batch):
                 xBatch = X[i:i+batch] 
@@ -126,8 +126,8 @@ class Layer:
         self.__biases = [0.0 for x in range(NoOfNeurons)]
 
         # Velocity for use with optimizer 
-        self.__weightsVelocity = [[0.0 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.__biasesVelocity = [0.0 for _ in range(NoOfNeurons)]
+        self.__weightsVelocity = [[1e-3 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
+        self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
 
     def forward(self, inputs):
         self.inputs = inputs.copy() # (90x11)

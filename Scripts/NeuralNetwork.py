@@ -9,7 +9,7 @@ from random import gauss, shuffle
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, Epochs=35):
+    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=50):
         self.Accuracy = 0.0
         self.loss = 9999999
 
@@ -18,50 +18,62 @@ class NeuralNetwork:
         self.Accuracies = []
         self.lrs = []
 
-        self.Hiddenlayer = Layer(11, 8, ReLU())
-        self.Outputlayer = Layer(8, 1, Sigmoid())
+        self.Hiddenlayer = Layer(inputNeurons, hiddenNeurons, ReLU())
+        self.Outputlayer = Layer(hiddenNeurons, 1, Sigmoid())
 
         # Currently overfitting
-    def train(self, X, Y, show=False):
+    def train(self, X, Y, batch=25, show=False):
+        sampleSize = len(Y)
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD(momentum=0.05)          # Optimizer
+        Optimizer = OptimizerSGD(InitialLearningRate=0.01, decay=0, momentum=0)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
-            # Forward Pass
-
+            accHold = []
+            lossHold = []
+            learningRateHold = []
+            
             a = list(zip(X, Y))
             shuffle(a)
             X, Y = zip(*a)
             X, Y = list(X), list(Y)
-            
-            self.Hiddenlayer.forward(X)
-            self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+        
+            for i in range(0, sampleSize, batch):
+                xBatch = X[i:i+batch] 
+                yBatch = Y[i:i+batch]
 
-            result = self.Outputlayer.activation.outputs.copy()
-            BinaryLoss.forward(result, Y)
+                # Forward Pass
+                self.Hiddenlayer.forward(xBatch)
+                self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
 
-            self.loss = BinaryLoss.SampleLoss
+                result = self.Outputlayer.activation.outputs.copy()
+                BinaryLoss.forward(result, yBatch)
 
-            self.Accuracy = sum([1 for x,y in zip(result, Y) if round(x)==y]) / len(result)
+                self.loss = BinaryLoss.SampleLoss
+                self.Accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
-            self.losses.append(self.loss)
-            self.Accuracies.append(self.Accuracy)
+                # Backward Pass ---- Breaks here
+                BinaryLoss.backward(result, yBatch)
+                self.Outputlayer.backward(BinaryLoss.dinputs)
+                self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
-            # Backward Pass ---- Breaks here
-            BinaryLoss.backward(result, Y)
-            self.Outputlayer.backward(BinaryLoss.dinputs)
-            self.Hiddenlayer.backward(self.Outputlayer.dinputs)
+                Optimizer.adjustLearningRate(iteration)
+                Optimizer.UpdateParameters(self.Hiddenlayer)
+                Optimizer.UpdateParameters(self.Outputlayer)
 
-            Optimizer.adjustLearningRate(iteration)
-            self.lrs.append(Optimizer.activeLearningRate)
-            Optimizer.UpdateParameters(self.Hiddenlayer)
-            Optimizer.UpdateParameters(self.Outputlayer)
+                accHold.append(self.Accuracy)
+                lossHold.append(self.loss)
+                learningRateHold.append(Optimizer.activeLearningRate)
+
+            self.Accuracies.append(sum(accHold) / (len(accHold)))
+            self.losses.append(sum(lossHold) / (len(lossHold)))
+            self.lrs.append(sum(learningRateHold) / (len(learningRateHold)))
 
             if show:
                 self.DisplayResults(iteration, Optimizer.activeLearningRate)
+                #input(list(zip(result, Y))[:6])
 
     def graph(self, sep=False):
         X = [x for x in range(1, self.Epochs+1)]
@@ -94,7 +106,6 @@ class NeuralNetwork:
     def Predict(self, UserData):
         self.Hiddenlayer.forward([UserData])
         self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
-
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
     def DisplayResults(self, iteration, Lr):
@@ -134,17 +145,17 @@ class Layer:
         self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) # breaks here
 
         # result = np.sum(dvalues, axis=0, keepdims=True)
-        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)] ## wrong - hidden suold hacve 7 but gets 180
+        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]
 
-    def getVelocites(self):
+    def getVelocities(self):
         return self.__weightsVelocity, self.__biasesVelocity
     
     def setVelocities(self, veloWeights, veloBiases):
         self.__weightsVelocity, self.__biasesVelocity = veloWeights, veloBiases
 
-    def getWeightsAndBaises(self):
+    def getWeightsAndBiases(self):
         return self.__weights, self.__biases
     
-    def setWeightsAndBaises(self, weights, biases):
+    def setWeightsAndBiases(self, weights, biases):
         self.__weights, self.__biases = weights, biases
-        
+

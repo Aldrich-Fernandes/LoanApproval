@@ -167,9 +167,9 @@ def ModelTest():
     # Enter the name of the model to load (Press ENTER to train a new one): 
 
     PreProcessor = PreProcess(New=True)
-    TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+    TrainX, TrainY, TestX, TestY = PreProcessor.getData(split=0)
     
-    model = NeuralNetwork(Epochs=40)
+    model = NeuralNetwork()
     model.train(TrainX, TrainY, show=True)
     model.graph(True)
     model.test(TestX, TestY, showTests=True)

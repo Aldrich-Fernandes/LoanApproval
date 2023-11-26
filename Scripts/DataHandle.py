@@ -6,7 +6,7 @@ class PreProcess:
         self.__TrainX = []
         self.__TrainY = []
         self.__featuresToRemove = ["Loan_ID"
-                                   #, "Self_Employed", "Gender", "Education", "Married", "Dependents"
+                                   , "Self_Employed", "Gender", "Education", "Married", "Dependents"
                                    ]
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,

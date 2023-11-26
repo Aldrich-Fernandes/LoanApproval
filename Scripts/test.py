@@ -1,26 +1,10 @@
-from DataHandle import DataMethod as DM
+import numpy as np
 
-a = -2
+X_train = np.random.rand(100, 6)  # Example input data
+y_train = np.random.randint(0, 2, size=(100, 1))
 
-b = [1, 2, 4, 2, 1]
-
-c = [[1, 2, 3, 1, 4],
-     [4, 9, 4, 3, 2],
-     [7, 4, 3, 7, 2]]
-
-d = [[3],
-     [1],
-     [4],
-     [6],
-     [1]]
-
-print("0x1")
-print(DM.Multiply(a, b))
-print("0x2")
-print(DM.Multiply(a, c))
-print("1x1")
-print(DM.Multiply(b, b))
-print("1x2")
-print(DM.Multiply(b, c))
-print("2x2")
-[print(x) for x in DM.Multiply(c, c)]
+for epoch in range(50):
+     for i in range(0, 100, 32):
+          # Extract a batch
+          print(len(X_train[i:i+32]))
+     input()

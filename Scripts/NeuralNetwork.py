@@ -18,16 +18,16 @@ class NeuralNetwork:
         self.Accuracies = []
         self.lrs = []
 
-        self.Hiddenlayer = Layer(inputNeurons, hiddenNeurons, ReLU())
-        self.Outputlayer = Layer(hiddenNeurons, 1, Sigmoid())
+        #self.Hiddenlayer = Layer(inputNeurons, hiddenNeurons, ReLU())
+        self.Outputlayer = Layer(inputNeurons, 1, Sigmoid())
 
         # Currently overfitting
-    def train(self, X, Y, batch=25, show=False):
+    def train(self, X, Y, batch=100, show=False):
         sampleSize = len(Y)
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD(InitialLearningRate=0.01, decay=0, momentum=0)          # Optimizer
+        Optimizer = OptimizerSGD(InitialLearningRate=0.005, decay=1e-4, momentum=0.9)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
@@ -45,26 +45,27 @@ class NeuralNetwork:
                 yBatch = Y[i:i+batch]
 
                 # Forward Pass
-                self.Hiddenlayer.forward(xBatch)
-                self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+                #self.Hiddenlayer.forward(xBatch)
+                self.Outputlayer.forward(xBatch)
 
                 result = self.Outputlayer.activation.outputs.copy()
+                #print(result)
                 BinaryLoss.forward(result, yBatch)
 
-                self.loss = BinaryLoss.SampleLoss
-                self.Accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
+                loss = BinaryLoss.SampleLoss
+                accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
                 # Backward Pass ---- Breaks here
                 BinaryLoss.backward(result, yBatch)
                 self.Outputlayer.backward(BinaryLoss.dinputs)
-                self.Hiddenlayer.backward(self.Outputlayer.dinputs)
+                #self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
                 Optimizer.adjustLearningRate(iteration)
-                Optimizer.UpdateParameters(self.Hiddenlayer)
+                #Optimizer.UpdateParameters(self.Hiddenlayer)
                 Optimizer.UpdateParameters(self.Outputlayer)
 
-                accHold.append(self.Accuracy)
-                lossHold.append(self.loss)
+                accHold.append(accuracy)
+                lossHold.append(loss)
                 learningRateHold.append(Optimizer.activeLearningRate)
 
             self.Accuracies.append(sum(accHold) / (len(accHold)))
@@ -72,7 +73,7 @@ class NeuralNetwork:
             self.lrs.append(sum(learningRateHold) / (len(learningRateHold)))
 
             if show:
-                self.DisplayResults(iteration, Optimizer.activeLearningRate)
+                self.DisplayResults(iteration, loss=self.losses[-1], accuracy=self.Accuracies[-1], learningRate=self.lrs[-1])
                 #input(list(zip(result, Y))[:6])
 
     def graph(self, sep=False):
@@ -93,8 +94,8 @@ class NeuralNetwork:
 
     def test(self, TestX, TestY, showTests=False):
         input(self.Outputlayer.activation.outputs)
-        self.Hiddenlayer.forward(TestX)
-        self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+        #self.Hiddenlayer.forward(TestX)
+        self.Outputlayer.forward(TestX)
 
         result = self.Outputlayer.activation.outputs.copy()
         if showTests:
@@ -108,8 +109,8 @@ class NeuralNetwork:
         self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
-    def DisplayResults(self, iteration, Lr):
-        print(f"Iteration: {iteration} Loss: {round(self.loss, 5)} Accuracy: {round(self.Accuracy, 5)} Lr: {Lr}\n\n")
+    def DisplayResults(self, iteration, loss, accuracy, learningRate):
+        print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation):

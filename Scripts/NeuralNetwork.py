@@ -9,7 +9,7 @@ from random import gauss
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=100):
+    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=50):
         self.Accuracy = 0.0
         self.loss = 9999999
 

@@ -22,7 +22,7 @@ class PreProcess:
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
 
         Dataset = self.RemoveFeatures(Dataset)
-        Dataset = self.AdjustSkew(Dataset)
+        Dataset = self.AdjustSkew(Dataset, samplesize=100)
 
         # Feature Engineering
         self.FeatureColumns = DataMethod.Transpose(Dataset)
@@ -37,6 +37,9 @@ class PreProcess:
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
+        self.__TrainX, self.__TrainY = ShuffleData(self.__TrainX, self.__TrainY)
+
+
     def RemoveFeatures(self, Dataset):
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = []
@@ -46,12 +49,11 @@ class PreProcess:
                 
         return DataMethod.Transpose(filteredFeatures)
 
-
-    def AdjustSkew(self, dataset):
+    def AdjustSkew(self, dataset, samplesize):
         Ones = 0
         Zeros = 0
         NewDataset = []
-        size = 100 # int(input("Enter the size of the dataset to use (50-600): "))
+        size = samplesize # int(input("Enter the size of the dataset to use (50-600): "))
 
         while len(NewDataset) != size:
             index = random.randint(0, len(dataset)-1)
@@ -114,15 +116,11 @@ class PreProcess:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
 
-    def SplitData(self, percent=0.0): # 80-20
-        NumOfTrainData = round(len(self.__TrainX) * percent)
+    def getData(self, split=0.2):
+        # Spliiting for Training data
+        NumOfTrainData = round(len(self.__TrainX) * split)
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
-        return TestX, TestY
-
-    def getData(self, split=0.1):
-        # Spliiting for Training data
-        TestX, TestY = self.SplitData(percent=split)
         return self.__TrainX, self.__TrainY, TestX, TestY
 
     def Display(self):        
@@ -198,3 +196,9 @@ class DataMethod:
                 return [DataMethod.Multiply(arr1, row) for row in arr2]
         else: # For 1d x 1d
             return [a * b for a, b in zip(arr1, arr2)]
+
+def ShuffleData(X, Y):
+    a = list(zip(X, Y))
+    random.shuffle(a)
+    X, Y = zip(*a)
+    return list(X), list(Y)

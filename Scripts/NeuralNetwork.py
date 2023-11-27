@@ -1,15 +1,15 @@
 
-from DataHandle import DataMethod
+from DataHandle import DataMethod, ShuffleData
 from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, OptimizerSGD
 
 import matplotlib.pyplot as plt
 from math import sqrt
-from random import gauss, shuffle
+from random import gauss
 
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=50):
+    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=100):
         self.Accuracy = 0.0
         self.loss = 9999999
 
@@ -22,12 +22,12 @@ class NeuralNetwork:
         self.Outputlayer = Layer(inputNeurons, 1, Sigmoid())
 
         # Currently overfitting
-    def train(self, X, Y, batch=100, show=False):
+    def train(self, X, Y, batch=16, show=False):
         sampleSize = len(Y)
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD(InitialLearningRate=0.005, decay=1e-4, momentum=0.9)          # Optimizer
+        Optimizer = OptimizerSGD(InitialLearningRate=0.0003, decay=5e-7, momentum=0.9)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
@@ -35,10 +35,7 @@ class NeuralNetwork:
             lossHold = []
             learningRateHold = []
             
-            #a = list(zip(X, Y))
-            #shuffle(a)
-            #X, Y = zip(*a)
-            #X, Y = list(X), list(Y)
+            ShuffleData(X, Y)
         
             for i in range(0, sampleSize, batch):
                 xBatch = X[i:i+batch] 
@@ -159,4 +156,3 @@ class Layer:
     
     def setWeightsAndBiases(self, weights, biases):
         self.__weights, self.__biases = weights, biases
-

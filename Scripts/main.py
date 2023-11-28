@@ -17,12 +17,7 @@ class GUI:
 
     def LoadPredictionGUI(self):
         # generate Questionair 
-        DataToGet = {'Gender: ': ["Male", "Female"],
-             'Married: ': ["Yes", "No"],
-             'Dependents (eg. number of childern/elderly): ': ["0", "1", "2", "+3"],
-             'Education: ': ["Graduate", "Not Graduate"],
-             'Self employed: ': ["Yes", "No"],
-             'Applicant monthly income: ': -1,
+        DataToGet = {'Applicant monthly income: ': -1,
              'Coapplicant monthly income: ': -1,
              'Loan amount (in thousands): ': -1,
              'Loan amount term (months): ': -1,
@@ -46,7 +41,7 @@ class GUI:
             index +=1
 
         self.ProcessBtn = tk.Button(self.PredictFrame, text="Enter", repeatinterval=5, command=self.ProcessUserData).grid(row=index, column=0, padx=5, pady=5)
-        self.ResultLabel = tk.Label(self.PredictFrame, textvariable=self.resultVal).grid(row=13, column=0, padx=5, pady=5)
+        self.ResultLabel = tk.Label(self.PredictFrame, textvariable=self.resultVal).grid(row=index+1, column=0, padx=5, pady=5)
 
         self.PredictFrame.pack()
 
@@ -77,8 +72,6 @@ def SaveModel(Model, PreProcessor):
     FileName = input("Please enter a model name: ").lower()
 
     file = open(f"DataSet/Models/{FileName}.txt", "w")
-    file.write(str(Model.Hiddenlayer.weights)+"\n")
-    file.write(str(Model.Hiddenlayer.biases)+"\n")
     file.write(str(Model.Outputlayer.weights)+"\n")
     file.write(str(Model.Outputlayer.biases)+"\n")
     file.write(str(Model.Accuracy)+"\n")
@@ -91,8 +84,6 @@ def LoadModel(FileName):
         Model = NeuralNetwork()
 
         file = open(f"DataSet/Models/{FileName}.txt", "r")
-        Model.Hiddenlayer.weights = eval(file.readline().rstrip())
-        Model.Hiddenlayer.biases = eval(file.readline().rstrip())
         Model.Outputlayer.weights = eval(file.readline().rstrip())
         Model.Outputlayer.biases = eval(file.readline().rstrip())
         Model.Accuracy = eval(file.readline().rstrip())
@@ -174,11 +165,9 @@ def ModelTest():
     model.graph(True)
     model.test(TestX, TestY, showTests=True)
 
-    #UserData = getData()
-    #input(UserData)
-    #UserData = PreProcessor.encode(UserData)
-    #input(UserData)
-    #model.Predict(UserData)
-    #print(model.Result)
+    UserData = getData()
+    UserData = PreProcessor.encode(UserData)
+    model.Predict(UserData)
+    print(model.Result)
 
 ModelTest()

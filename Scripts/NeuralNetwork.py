@@ -102,8 +102,8 @@ class NeuralNetwork:
         print("Test Accuracy: ", str(sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)))
 
     def Predict(self, UserData):
-        self.Hiddenlayer.forward([UserData])
-        self.Outputlayer.forward(self.Hiddenlayer.activation.outputs)
+        #self.Hiddenlayer.forward([UserData])
+        self.Outputlayer.forward([UserData])
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
     def DisplayResults(self, iteration, loss, accuracy, learningRate):

@@ -9,25 +9,26 @@ from random import gauss
 DM = DataMethod()
 
 class NeuralNetwork:
-    def __init__(self, inputNeurons=6, hiddenNeurons=16, Epochs=50):
+    def __init__(self, inputNeurons=6, hiddenNeurons=0, Epochs=50, regularisationStrenght=0.0):
         self.Accuracy = 0.0
         self.loss = 9999999
-
+        self.regularisationStrenght = regularisationStrenght
         self.Epochs = Epochs
+
         self.losses = []
         self.Accuracies = []
         self.lrs = []
 
         #self.Hiddenlayer = Layer(inputNeurons, hiddenNeurons, ReLU())
-        self.Outputlayer = Layer(inputNeurons, 1, Sigmoid())
+        self.Outputlayer = Layer(inputNeurons, 1, Sigmoid(), self.regularisationStrenght)
 
         # Currently overfitting
     def train(self, X, Y, batch=16, show=False):
         sampleSize = len(Y)
 
         # For backpass
-        BinaryLoss = BinaryCrossEntropy() # Loss function
-        Optimizer = OptimizerSGD(InitialLearningRate=0.0003, decay=5e-7, momentum=0.9)          # Optimizer
+        BinaryLoss = BinaryCrossEntropy(self.regularisationStrenght) # Loss function
+        Optimizer = OptimizerSGD(InitialLearningRate=0.0005, decay=9e-7, momentum=0.95)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):
@@ -46,14 +47,16 @@ class NeuralNetwork:
                 self.Outputlayer.forward(xBatch)
 
                 result = self.Outputlayer.activation.outputs.copy()
-                #print(result)
                 BinaryLoss.forward(result, yBatch)
+                BinaryLoss.calcregularisationLoss(self.Outputlayer.getWeightsAndBiases()[0])
 
-                loss = BinaryLoss.SampleLoss
+                loss = BinaryLoss.getLoss()
                 accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
                 # Backward Pass ---- Breaks here
                 BinaryLoss.backward(result, yBatch)
+                #BinaryLoss.updateDInputs(self.Outputlayer.getWeightsAndBiases()[0])
+
                 self.Outputlayer.backward(BinaryLoss.dinputs)
                 #self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
@@ -62,7 +65,7 @@ class NeuralNetwork:
                 Optimizer.UpdateParameters(self.Outputlayer)
 
                 accHold.append(accuracy)
-                lossHold.append(loss)
+                lossHold.append(BinaryLoss.getLoss())
                 learningRateHold.append(Optimizer.activeLearningRate)
 
             self.Accuracies.append(sum(accHold) / (len(accHold)))
@@ -110,7 +113,7 @@ class NeuralNetwork:
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
 class Layer:
-    def __init__(self, NoOfInputs, NoOfNeurons, activation):
+    def __init__(self, NoOfInputs, NoOfNeurons, activation,  regularisationStrenght=0):
         self.activation = activation
 
         # Xavier/Glorot weight initialization
@@ -127,6 +130,9 @@ class Layer:
         self.__weightsVelocity = [[1e-3 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
         self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
 
+        # L2 regularisation
+        self.regularisationStrenght = regularisationStrenght
+
     def forward(self, inputs):
         self.inputs = inputs.copy() # (90x11)
 
@@ -140,10 +146,14 @@ class Layer:
 
         self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights))
 
-        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) # breaks here
+        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) 
 
         # result = np.sum(dvalues, axis=0, keepdims=True)
         self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]
+
+        if self.regularisationStrenght != 0:
+            DweightsRegularisation = DM.Multiply(self.regularisationStrenght, self.__weights)
+            self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] for x in range(len(self.dweights))]
 
     def getVelocities(self):
         return self.__weightsVelocity, self.__biasesVelocity

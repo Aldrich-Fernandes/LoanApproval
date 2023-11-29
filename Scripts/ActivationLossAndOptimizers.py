@@ -48,14 +48,21 @@ class Sigmoid(Activation):
 
 # Loss
 class BinaryCrossEntropy:  # Measure how well the model is.
+    def __init__(self, regularisationStrenght=0):
+        self.sampleLoss = 0
+        self.regularisationLoss = 0
+        self.regularisationStrenght = regularisationStrenght
+
     def forward(self, predictions, TrueVals):
         # Remove any 0s or 1s to avoid arithmethic errors
         predictions = clipEdges(predictions) # to 1e-16
 
         # Formula used: -(true * log(Predicted) + (1 - true) * log(1 - Predicted))
-        SampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) for tVal, pVal in zip(TrueVals, predictions)]
+        sampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) for tVal, pVal in zip(TrueVals, predictions)]
 
-        self.SampleLoss = sum(SampleLoss) / len(SampleLoss) # Average of all samples
+        self.sampleLoss = sum(sampleLoss) / len(sampleLoss) # Average of all samples
+
+        self.regularisationLoss = 0
 
     def backward(self, predicted, TrueVals): # Dirative of above Formula
 
@@ -67,6 +74,19 @@ class BinaryCrossEntropy:  # Measure how well the model is.
         # Formula: -(true / predicted) + ( (1-true) / (1-predicted))
         #self.dinputs = [-(Tval/PredictVal) + (1-Tval)/(1-PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
+    def calcregularisationLoss(self, layerWeights):
+        
+        if self.regularisationStrenght != 0:
+            self.regularisationLoss += 0.5 * self.regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
+
+    def updateDInputs(self, layerWeights):
+        print(self.dinputs) # 1x16
+        input(DM.Transpose(layerWeights)) # 6x1
+        self.dinputs = [a+b for a, b in zip(self.dinputs, DM.Multiply(self.regularisationStrenght, DM.Transpose(layerWeights)))]
+
+    def getLoss(self):
+        return self.sampleLoss + self.regularisationLoss
+    
 
 class OptimizerSGD:
     def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):

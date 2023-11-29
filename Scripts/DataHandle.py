@@ -29,7 +29,7 @@ class PreProcess:
 
         #self.ReplaceMissingVals()
 
-        self.ConvertToInterger()
+        self.ConvertToInteger()
 
         self.__TrainY = self.FeatureColumns.pop()
 
@@ -86,7 +86,7 @@ class PreProcess:
                 if element == "":
                     Column[index] = ReplacementData
 
-    def ConvertToInterger(self): 
+    def ConvertToInteger(self): 
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}

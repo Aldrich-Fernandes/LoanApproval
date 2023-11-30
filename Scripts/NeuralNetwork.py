@@ -8,8 +8,8 @@ from random import gauss
 
 DM = DataMethod()
 
-class NeuralNetwork:
-    def __init__(self, inputNeurons=6, hiddenNeurons=0, Epochs=50, regularisationStrenght=0.0):
+class Model:
+    def __init__(self, inputNeurons=6, hiddenNeurons=0, Epochs=50, regularisationStrenght=0.001):
         self.Accuracy = 0.0
         self.loss = 9999999
         self.regularisationStrenght = regularisationStrenght
@@ -28,7 +28,7 @@ class NeuralNetwork:
 
         # For backpass
         BinaryLoss = BinaryCrossEntropy(self.regularisationStrenght) # Loss function
-        Optimizer = OptimizerSGD(InitialLearningRate=0.0005, decay=9e-7, momentum=0.95)          # Optimizer
+        Optimizer = OptimizerSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)          # Optimizer
 
         # Epochs
         for iteration in range(self.Epochs):

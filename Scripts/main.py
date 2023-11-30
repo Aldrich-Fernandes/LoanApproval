@@ -1,4 +1,4 @@
-from NeuralNetwork import NeuralNetwork
+from NeuralNetwork import Model
 from DataHandle import PreProcess, ShuffleData
 import tkinter as tk
 
@@ -81,15 +81,15 @@ def SaveModel(Model, PreProcessor):
 def LoadModel(FileName):
     try:
         PreProcessor = PreProcess()
-        Model = NeuralNetwork()
+        model = Model()
 
         file = open(f"DataSet/Models/{FileName}.txt", "r")
-        Model.Outputlayer.weights = eval(file.readline().rstrip())
-        Model.Outputlayer.biases = eval(file.readline().rstrip())
-        Model.Accuracy = eval(file.readline().rstrip())
+        model.Outputlayer.weights = eval(file.readline().rstrip())
+        model.Outputlayer.biases = eval(file.readline().rstrip())
+        model.Accuracy = eval(file.readline().rstrip())
         PreProcessor.ScalingData = eval(file.readline().rstrip())
         file.close()
-        return Model, PreProcessor
+        return model, PreProcessor
 
     except FileNotFoundError:
         print("File Doesnt exist. Returning to menu...")
@@ -160,7 +160,7 @@ def ModelTest():
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
     
-    model = NeuralNetwork()
+    model = Model()
     model.train(TrainX, TrainY, show=True)
     model.graph(True)
     model.test(TestX, TestY, showTests=True)

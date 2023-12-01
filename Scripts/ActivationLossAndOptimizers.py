@@ -29,7 +29,7 @@ class ReLU(Activation): # Rectified Linear Unit
         self.dinputs = [[1 if element > 0 else 0 for element in sample] for sample in self.inputs] 
 
 class Sigmoid(Activation):
-    def __init__(self): # So that a new instace is not created rach time the forward() is run
+    def __init__(self): # So that a new instace is not created each time the forward() is run
         self.positive = lambda x: 1 / (exp(-x) + 1)
         self.negative = lambda x: exp(x) / (exp(x) + 1)
         self.__ID = "Sigmoid"
@@ -42,8 +42,6 @@ class Sigmoid(Activation):
         self.outputs = [self.negative(val[0]) if val[0] < 0 else self.positive(val[0]) for val in inputs] # avoids overflow errors with exp()
 
     def backward(self, dvalues):
-        #print(dvalues)
-        #input(self.outputs)
         self.dinputs = [[a*b*(1-b)] for a,b in zip(dvalues, self.outputs)]
 
 # Loss
@@ -71,22 +69,18 @@ class BinaryCrossEntropy:  # Measure how well the model is.
         # Formula == (PredictVal - Tval) / ((1-PredictVal) * PredictVal)
         self.dinputs = [(PredictVal - Tval) / ((1-PredictVal) * PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
-        # Formula: -(true / predicted) + ( (1-true) / (1-predicted))
-        #self.dinputs = [-(Tval/PredictVal) + (1-Tval)/(1-PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
-
     def calcregularisationLoss(self, layerWeights):
         
         if self.regularisationStrenght != 0:
             self.regularisationLoss += 0.5 * self.regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
 
-    def updateDInputs(self, layerWeights):
+    def updateDInputs(self, layerWeights): #???
         print(self.dinputs) # 1x16
         input(DM.Transpose(layerWeights)) # 6x1
         self.dinputs = [a+b for a, b in zip(self.dinputs, DM.Multiply(self.regularisationStrenght, DM.Transpose(layerWeights)))]
 
     def getLoss(self):
         return self.sampleLoss + self.regularisationLoss
-    
 
 class OptimizerSGD:
     def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):

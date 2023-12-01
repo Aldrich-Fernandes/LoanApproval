@@ -20,7 +20,6 @@ class PreProcess:
 
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
-
         Dataset = self.RemoveFeatures(Dataset)
         Dataset = self.AdjustSkew(Dataset, samplesize=100)
 
@@ -39,7 +38,6 @@ class PreProcess:
 
         self.__TrainX, self.__TrainY = ShuffleData(self.__TrainX, self.__TrainY)
 
-
     def RemoveFeatures(self, Dataset):
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = []
@@ -53,7 +51,7 @@ class PreProcess:
         Ones = 0
         Zeros = 0
         NewDataset = []
-        size = samplesize # int(input("Enter the size of the dataset to use (50-600): "))
+        size = samplesize 
 
         while len(NewDataset) != size:
             index = random.randint(0, len(dataset)-1)
@@ -69,7 +67,7 @@ class PreProcess:
 
         return NewDataset
 
-    def ReplaceMissingVals(self): 
+    def ReplaceMissingVals(self):  # needed??
         Numbers = '1234567890'
         for Column in self.FeatureColumns: # Selects the most common / mean input
             TestElement = ""
@@ -140,7 +138,6 @@ class PreProcess:
             UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
 
         return UserData
-
 
 class DataMethod:
     @staticmethod

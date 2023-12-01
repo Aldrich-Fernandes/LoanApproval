@@ -19,10 +19,8 @@ class Model:
         self.Accuracies = []
         self.lrs = []
 
-        #self.Hiddenlayer = Layer(inputNeurons, hiddenNeurons, ReLU())
         self.Outputlayer = Layer(inputNeurons, 1, Sigmoid(), self.regularisationStrenght)
 
-        # Currently overfitting
     def train(self, X, Y, batch=16, show=False):
         sampleSize = len(Y)
 
@@ -43,25 +41,19 @@ class Model:
                 yBatch = Y[i:i+batch]
 
                 # Forward Pass
-                #self.Hiddenlayer.forward(xBatch)
                 self.Outputlayer.forward(xBatch)
 
                 result = self.Outputlayer.activation.outputs.copy()
                 BinaryLoss.forward(result, yBatch)
                 BinaryLoss.calcregularisationLoss(self.Outputlayer.getWeightsAndBiases()[0])
 
-                loss = BinaryLoss.getLoss()
                 accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
-                # Backward Pass ---- Breaks here
+                # Backward Pass 
                 BinaryLoss.backward(result, yBatch)
-                #BinaryLoss.updateDInputs(self.Outputlayer.getWeightsAndBiases()[0])
-
                 self.Outputlayer.backward(BinaryLoss.dinputs)
-                #self.Hiddenlayer.backward(self.Outputlayer.dinputs)
 
                 Optimizer.adjustLearningRate(iteration)
-                #Optimizer.UpdateParameters(self.Hiddenlayer)
                 Optimizer.UpdateParameters(self.Outputlayer)
 
                 accHold.append(accuracy)
@@ -74,7 +66,6 @@ class Model:
 
             if show:
                 self.DisplayResults(iteration, loss=self.losses[-1], accuracy=self.Accuracies[-1], learningRate=self.lrs[-1])
-                #input(list(zip(result, Y))[:6])
 
     def graph(self, sep=False):
         X = [x for x in range(1, self.Epochs+1)]
@@ -94,7 +85,6 @@ class Model:
 
     def test(self, TestX, TestY, showTests=False):
         input(self.Outputlayer.activation.outputs)
-        #self.Hiddenlayer.forward(TestX)
         self.Outputlayer.forward(TestX)
 
         result = self.Outputlayer.activation.outputs.copy()
@@ -105,7 +95,6 @@ class Model:
         print("Test Accuracy: ", str(sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)))
 
     def Predict(self, UserData):
-        #self.Hiddenlayer.forward([UserData])
         self.Outputlayer.forward([UserData])
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
@@ -136,7 +125,7 @@ class Layer:
     def forward(self, inputs):
         self.inputs = inputs.copy() # (90x11)
 
-        self.output = [[a+b for a,b in zip(sample, self.__biases)] for sample in DM.DotProduct(inputs, self.__weights)] # add biases  -- (10x7)/ (samplesize x NOofNeurons)        
+        self.output = [[a+b for a,b in zip(sample, self.__biases)] for sample in DM.DotProduct(inputs, self.__weights)]        
 
         self.activation.forward(self.output)
 

@@ -1,32 +1,31 @@
 
 from DataHandle import DataMethod, ShuffleData
-from ActivationLossAndOptimizers import ReLU, Sigmoid, BinaryCrossEntropy, OptimizerSGD
+from ActivationLossAndOptimizers import BinaryCrossEntropy, OptimizerSGD
 
 import matplotlib.pyplot as plt
-from math import sqrt
-from random import gauss
 
 DM = DataMethod()
 
 class Model:
-    def __init__(self, inputNeurons=6, hiddenNeurons=0, Epochs=50, regularisationStrenght=0.001):
+    def __init__(self, Epochs=50, regularisationStrenght=0.001):
         self.Accuracy = 0.0
-        self.loss = 9999999
         self.regularisationStrenght = regularisationStrenght
         self.Epochs = Epochs
-
-        self.losses = []
-        self.Accuracies = []
-        self.lrs = []
-
-        self.Outputlayer = Layer(inputNeurons, 1, Sigmoid(), self.regularisationStrenght)
-
-    def train(self, X, Y, batch=16, show=False):
-        sampleSize = len(Y)
+        
+        self.Layers = []
 
         # For backpass
-        BinaryLoss = BinaryCrossEntropy(self.regularisationStrenght) # Loss function
-        Optimizer = OptimizerSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)          # Optimizer
+        self.LossFunction = BinaryCrossEntropy(self.regularisationStrenght)                 # Loss function
+        self.Optimizer = OptimizerSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)  # Optimizer
+
+    def add(self, layer):
+        self.Layers.append(layer)
+
+    def train(self, X, Y, batch=16, show=False, canGraph=True):
+        losses = []
+        accuracies = []
+        lrs = []
+        sampleSize = len(Y)
 
         # Epochs
         for iteration in range(self.Epochs):
@@ -41,53 +40,56 @@ class Model:
                 yBatch = Y[i:i+batch]
 
                 # Forward Pass
-                self.Outputlayer.forward(xBatch)
+                for x, layer in enumerate(self.Layers):
+                    if x == 0:
+                        layer.forward(xBatch)
+                    else:
+                        layer.forward(self.layers[x-1].activation.outputs)
 
-                result = self.Outputlayer.activation.outputs.copy()
-                BinaryLoss.forward(result, yBatch)
-                BinaryLoss.calcregularisationLoss(self.Outputlayer.getWeightsAndBiases()[0])
+                result = self.Layers[-1].activation.outputs
+
+                self.LossFunction.forward(result, yBatch)
+                self.LossFunction.calcregularisationLoss(self.Layers[-1].getWeightsAndBiases()[0])
 
                 accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
                 # Backward Pass 
-                BinaryLoss.backward(result, yBatch)
-                self.Outputlayer.backward(BinaryLoss.dinputs)
+                self.LossFunction.backward(result, yBatch)
+                
+                for x, layer in enumerate(self.Layers[::-1]):
+                    if x == 0:
+                        layer.backward(self.LossFunction.dinputs)
+                    else:
+                        layer.backward(self.Layers[-x].dinputs)
 
-                Optimizer.adjustLearningRate(iteration)
-                Optimizer.UpdateParameters(self.Outputlayer)
+                self.Optimizer.adjustLearningRate(iteration)
+                for layer in self.Layers:
+                    self.Optimizer.UpdateParameters(layer)
 
                 accHold.append(accuracy)
-                lossHold.append(BinaryLoss.getLoss())
-                learningRateHold.append(Optimizer.activeLearningRate)
+                lossHold.append(self.LossFunction.getLoss())
+                learningRateHold.append(self.Optimizer.activeLearningRate)
 
-            self.Accuracies.append(sum(accHold) / (len(accHold)))
-            self.losses.append(sum(lossHold) / (len(lossHold)))
-            self.lrs.append(sum(learningRateHold) / (len(learningRateHold)))
+            accuracies.append(sum(accHold) / (len(accHold)))
+            losses.append(sum(lossHold) / (len(lossHold)))
+            lrs.append(sum(learningRateHold) / (len(learningRateHold)))
 
             if show:
-                self.DisplayResults(iteration, loss=self.losses[-1], accuracy=self.Accuracies[-1], learningRate=self.lrs[-1])
-
-    def graph(self, sep=False):
-        X = [x for x in range(1, self.Epochs+1)]
-        if not sep:
-            plt.plot(X, self.losses, label='Loss')
-            plt.plot(X, self.Accuracies, label='Accuracy')
-            plt.legend()
-        else:
-            _, ax = plt.subplots(3, 1, figsize=(10, 8))
-            ax[0].plot(X, self.losses, label='Loss')
-            ax[1].plot(X, self.Accuracies, label='Accuracy')
-            ax[2].plot(X, self.lrs, label='Learning Rate')
-            ax[0].legend()
-            ax[1].legend()
-            ax[2].legend()
-        plt.show(block=False)
+                self.DisplayResults(iteration, loss=losses[-1], accuracy=accuracies[-1], learningRate=lrs[-1])
+        
+        if canGraph:
+            self.graph(accuracies, losses, lrs)
 
     def test(self, TestX, TestY, showTests=False):
-        input(self.Outputlayer.activation.outputs)
-        self.Outputlayer.forward(TestX)
+        input(self.Layers[-1].activation.outputs)
+        for x, layer in enumerate(self.Layers):
+            if x == 0:
+                layer.forward(TestX)
+            else:
+                layer.forward(self.layers[x-1].activation.outputs)
 
-        result = self.Outputlayer.activation.outputs.copy()
+        result = self.Layers[-1].activation.outputs.copy()
+        
         if showTests:
             for x in range(len(result)):
                 print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")
@@ -98,60 +100,22 @@ class Model:
         self.Outputlayer.forward([UserData])
         self.Result = round(self.Outputlayer.activation.outputs[0], 4)
 
+    def graph(self, accuracies, losses, lrs, sep=True):
+        X = [x for x in range(1, self.Epochs+1)]
+        if not sep:
+            plt.plot(X, losses, label='Loss')
+            plt.plot(X, accuracies, label='Accuracy')
+            plt.legend()
+        else:
+            _, ax = plt.subplots(3, 1, figsize=(10, 8))
+            ax[0].plot(X, losses, label='Loss')
+            ax[1].plot(X, accuracies, label='Accuracy')
+            ax[2].plot(X, lrs, label='Learning Rate')
+            ax[0].legend()
+            ax[1].legend()
+            ax[2].legend()
+        plt.show(block=False)
+
     def DisplayResults(self, iteration, loss, accuracy, learningRate):
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
-class Layer:
-    def __init__(self, NoOfInputs, NoOfNeurons, activation,  regularisationStrenght=0):
-        self.activation = activation
-
-        # Xavier/Glorot weight initialization
-        if self.activation.getID() == "ReLU":
-            Numerator = 2
-        elif self.activation.getID() == "Sigmoid":
-            Numerator = 1
-
-        scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
-        self.__weights = [[gauss(0, scale) for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.__biases = [0.0 for x in range(NoOfNeurons)]
-
-        # Velocity for use with optimizer 
-        self.__weightsVelocity = [[1e-3 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
-
-        # L2 regularisation
-        self.regularisationStrenght = regularisationStrenght
-
-    def forward(self, inputs):
-        self.inputs = inputs.copy() # (90x11)
-
-        self.output = [[a+b for a,b in zip(sample, self.__biases)] for sample in DM.DotProduct(inputs, self.__weights)]        
-
-        self.activation.forward(self.output)
-
-    def backward(self, dvalues):
-        self.activation.backward(dvalues)
-        dvalues = self.activation.dinputs.copy()
-
-        self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights))
-
-        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues) 
-
-        # result = np.sum(dvalues, axis=0, keepdims=True)
-        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]
-
-        if self.regularisationStrenght != 0:
-            DweightsRegularisation = DM.Multiply(self.regularisationStrenght, self.__weights)
-            self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] for x in range(len(self.dweights))]
-
-    def getVelocities(self):
-        return self.__weightsVelocity, self.__biasesVelocity
-    
-    def setVelocities(self, veloWeights, veloBiases):
-        self.__weightsVelocity, self.__biasesVelocity = veloWeights, veloBiases
-
-    def getWeightsAndBiases(self):
-        return self.__weights, self.__biases
-    
-    def setWeightsAndBiases(self, weights, biases):
-        self.__weights, self.__biases = weights, biases

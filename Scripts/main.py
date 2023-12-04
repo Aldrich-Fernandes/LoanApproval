@@ -1,5 +1,6 @@
-from NeuralNetwork import Model
-from DataHandle import PreProcess, ShuffleData
+from NeuralNetwork import *
+from Layer import *
+from DataHandle import PreProcess
 import tkinter as tk
 
 class GUI:
@@ -160,9 +161,10 @@ def ModelTest():
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
     
-    model = Model()
+    model = Model(Epochs=30)
+    model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
+
     model.train(TrainX, TrainY, show=True)
-    model.graph(True)
     model.test(TestX, TestY, showTests=True)
 
     UserData = getData()

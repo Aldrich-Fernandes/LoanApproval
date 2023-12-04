@@ -14,14 +14,16 @@ class PreProcess:
         self.ScalingData = {'means': [],
                             'stds': []}
         if New:
+            self.size = int(input("Enter the size of the data: "))
             self.NewDataset()
+        
 
     def NewDataset(self):
 
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         Dataset = self.RemoveFeatures(Dataset)
-        Dataset = self.AdjustSkew(Dataset, samplesize=100)
+        Dataset = self.AdjustSkew(Dataset)
 
         # Feature Engineering
         self.FeatureColumns = DataMethod.Transpose(Dataset)
@@ -47,11 +49,11 @@ class PreProcess:
                 
         return DataMethod.Transpose(filteredFeatures)
 
-    def AdjustSkew(self, dataset, samplesize):
+    def AdjustSkew(self, dataset):
         Ones = 0
         Zeros = 0
         NewDataset = []
-        size = samplesize 
+        size = 200 #self.size
 
         while len(NewDataset) != size:
             index = random.randint(0, len(dataset)-1)

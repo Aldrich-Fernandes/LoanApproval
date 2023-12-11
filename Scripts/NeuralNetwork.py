@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 DM = DataMethod()
 
 class Model:
-    def __init__(self, Epochs=50, regularisationStrenght=0.001):
+    def __init__(self, Epochs=10, regularisationStrenght=0.001):
         self.Accuracy = 0.0
         self.regularisationStrenght = regularisationStrenght
         self.Epochs = Epochs
@@ -21,7 +21,16 @@ class Model:
     def add(self, layer):
         self.Layers.append(layer)
 
-    def train(self, X, Y, batch=16, show=False, canGraph=True):
+    def forward(self, data):
+        for x, layer in enumerate(self.Layers):
+            if x == 0:
+                layer.forward(data)
+            else:
+                layer.forward(self.layers[x-1].activation.outputs)
+
+        return self.Layers[-1].activation.outputs
+
+    def train(self, X, Y, batch=16, show=False, canGraph=False):
         losses = []
         accuracies = []
         lrs = []
@@ -40,13 +49,7 @@ class Model:
                 yBatch = Y[i:i+batch]
 
                 # Forward Pass
-                for x, layer in enumerate(self.Layers):
-                    if x == 0:
-                        layer.forward(xBatch)
-                    else:
-                        layer.forward(self.layers[x-1].activation.outputs)
-
-                result = self.Layers[-1].activation.outputs
+                result = self.forward(xBatch)
 
                 self.LossFunction.forward(result, yBatch)
                 self.LossFunction.calcregularisationLoss(self.Layers[-1].getWeightsAndBiases()[0])
@@ -81,24 +84,17 @@ class Model:
             self.graph(accuracies, losses, lrs)
 
     def test(self, TestX, TestY, showTests=False):
-        input(self.Layers[-1].activation.outputs)
-        for x, layer in enumerate(self.Layers):
-            if x == 0:
-                layer.forward(TestX)
-            else:
-                layer.forward(self.layers[x-1].activation.outputs)
-
-        result = self.Layers[-1].activation.outputs.copy()
+        result = self.forward(TestX)
         
         if showTests:
             for x in range(len(result)):
                 print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")
-
-        print("Test Accuracy: ", str(sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)))
+        
+        self.Accuracy = sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)
+        print(f"\nTest Accuracy: {self.Accuracy}")
 
     def Predict(self, UserData):
-        self.Outputlayer.forward([UserData])
-        self.Result = round(self.Outputlayer.activation.outputs[0], 4)
+        self.Result = round(self.forward(UserData)[0], 4)
 
     def graph(self, accuracies, losses, lrs, sep=True):
         X = [x for x in range(1, self.Epochs+1)]
@@ -119,3 +115,8 @@ class Model:
     def DisplayResults(self, iteration, loss, accuracy, learningRate):
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
+    def saveModel(self):
+        pass
+
+    def loadModel(self):
+        pass

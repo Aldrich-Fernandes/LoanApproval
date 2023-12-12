@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from DataHandle import DataMethod as DM
 
 #Activations
-class Activation(ABC): # Scales 
+class Activation(ABC): # Scales the output of a layer
     @abstractmethod
     def forward(self, inputs): # Formula
         pass
@@ -14,12 +14,6 @@ class Activation(ABC): # Scales
         pass
 
 class ReLU(Activation): # Rectified Linear Unit
-    def __init__(self):
-        self.__ID = "ReLU"
-
-    def getID(self):
-        return self.__ID
-
     # limits between (>= 0)
     def forward(self, inputs):
         self.inputs = inputs
@@ -34,20 +28,17 @@ class Sigmoid(Activation):
         # So that a new instace is not created each time the forward() is run
         self.positive = lambda x: 1 / (exp(-x) + 1)
         self.negative = lambda x: exp(x) / (exp(x) + 1)
-        self.__ID = "Sigmoid"
-
-    def getID(self):
-        return self.__ID
 
     # Squashes data between 0 and 1
     def forward(self, inputs): 
 
+        # Introduced different 
         self.outputs = [self.negative(val[0]) if val[0] < 0 else self.positive(val[0]) for val in inputs] # avoids overflow errors with exp()
 
     def backward(self, dvalues):
         self.dinputs = [[a*b*(1-b)] for a,b in zip(dvalues, self.outputs)]
 
-# Loss - Measure how well the model is
+# Loss - Measure how well the model performed
 class BinaryCrossEntropy:
     def __init__(self, regularisationStrenght=0):
         self.sampleLoss = 0
@@ -56,14 +47,14 @@ class BinaryCrossEntropy:
 
     def forward(self, predictions, TrueVals):
         # Remove any 0s or 1s to avoid arithmethic errors
-        predictions = clipEdges(predictions) # to 1e-16
+        predictions = clipEdges(predictions)
 
         # Formula used: -(true * log(Predicted) + (1 - true) * log(1 - Predicted))
         sampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) for tVal, pVal in zip(TrueVals, predictions)]
 
         self.sampleLoss = sum(sampleLoss) / len(sampleLoss) # Average of all samples
 
-        self.regularisationLoss = 0
+        self.regularisationLoss = 0 # Reset for that epoch
 
     # Dirative of above Formula
     def backward(self, predicted, TrueVals): 
@@ -83,13 +74,13 @@ class BinaryCrossEntropy:
 
 class OptimizerSGD:
     def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):
-        self.InitialLearningRate = InitialLearningRate
-        self.minimumLearningRate = minimumLearningRate
-        self.decay = decay
-        self.momentum = momentum
-        self.activeLearningRate = InitialLearningRate
+        self.InitialLearningRate = InitialLearningRate          # Starting Learning rate
+        self.minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
+        self.decay = decay                                      # Rate at which Learning rate decreases
+        self.momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
+        self.activeLearningRate = InitialLearningRate           # Working learning rate
 
-    def adjustLearningRate(self, iter, mode="Linear"):
+    def adjustLearningRate(self, iter, mode="Linear"): # gradually decreases the learning rate to avoid overshooting the optimal parameters
         if self.decay != 0:
             if mode == "Linear":
                 self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter), self.minimumLearningRate)
@@ -106,13 +97,18 @@ class OptimizerSGD:
         if self.momentum != 0:
             weightsVelocity, biasesVelocity = layer.getVelocities()
 
+            # Adjust Weights    |    layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
+
             weightsVelocity = [[a - b for a, b in zip(velocityRow, dweightsRow)]
                                for velocityRow, dweightsRow in zip(DM.Multiply(self.momentum, weightsVelocity),
                                                                   AdjustedDWeight)]
 
+            # Adjust Biases    |    layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases
             biasesVelocity = [a - b for a, b in zip(DM.Multiply(self.momentum, biasesVelocity), AdjustedDBiases)]
 
             layer.setVelocities(weightsVelocity, biasesVelocity)
+
+            # Final Updates
 
             weights = [[a + b for a, b in zip(weights[x], weightsVelocity[x])] for x in range(len(weights))]
             biases = [a + b for a, b in zip(biases, biasesVelocity)]

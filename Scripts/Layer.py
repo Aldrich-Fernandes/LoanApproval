@@ -7,24 +7,22 @@ class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrenght=0.001):
         if activation == "Sigmoid":
             self.activation = Sigmoid()
+            Numerator = 1
         elif activation == "ReLU":
             self.activation = ReLU()
+            Numerator = 2
 
         # Xavier/Glorot weight initialization
-        if self.activation.getID() == "ReLU":
-            Numerator = 2
-        elif self.activation.getID() == "Sigmoid":
-            Numerator = 1
 
         scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
         self.__weights = [[gauss(0, scale) for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
         self.__biases = [0.0 for x in range(NoOfNeurons)]
 
-        # Velocity for use with self.Optimizer
+        # Velocity for use with Optimizer momentum
         self.__weightsVelocity = [[1e-3 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
         self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
 
-        # L2 regularisation
+        # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
         self.regularisationStrenght = regularisationStrenght
 
     def forward(self, inputs):

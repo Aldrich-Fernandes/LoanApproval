@@ -24,7 +24,7 @@ class Layer:
         self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
 
         # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
-        self.regularisationStrenght = regularisationStrenght
+        self.__regularisationStrenght = regularisationStrenght
 
     def forward(self, inputs): # Formula = sum(weights x input) + bias
         self.inputs = inputs.copy()
@@ -43,8 +43,8 @@ class Layer:
 
         self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]                      # used by optimizer to adjist biases
 
-        if self.regularisationStrenght != 0:                                        # adds penalty
-            DweightsRegularisation = DM.Multiply(self.regularisationStrenght, self.__weights)
+        if self.__regularisationStrenght != 0:                                        # adds penalty
+            DweightsRegularisation = DM.Multiply(self.__regularisationStrenght, self.__weights)
             self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] for x in range(len(self.dweights))]
 
     # Getters and Setters

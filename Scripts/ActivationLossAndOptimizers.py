@@ -42,8 +42,8 @@ class Sigmoid(Activation):
 class BinaryCrossEntropy:
     def __init__(self, regularisationStrenght=0):
         self.sampleLoss = 0
-        self.regularisationLoss = 0
-        self.regularisationStrenght = regularisationStrenght
+        self.__regularisationLoss = 0
+        self.__regularisationStrenght = regularisationStrenght
 
     def forward(self, predictions, TrueVals):
         # Remove any 0s or 1s to avoid arithmethic errors
@@ -54,7 +54,7 @@ class BinaryCrossEntropy:
 
         self.sampleLoss = sum(sampleLoss) / len(sampleLoss) # Average of all samples
 
-        self.regularisationLoss = 0 # Reset for that epoch
+        self.__regularisationLoss = 0 # Reset for that epoch
 
     # Dirative of above Formula
     def backward(self, predicted, TrueVals): 
@@ -65,11 +65,11 @@ class BinaryCrossEntropy:
 
     def calcregularisationLoss(self, layerWeights):
         
-        if self.regularisationStrenght != 0:
-            self.regularisationLoss += 0.5 * self.regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
+        if self.__regularisationStrenght != 0:
+            self.__regularisationLoss += 0.5 * self.__regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
 
     def getLoss(self):
-        return self.sampleLoss + self.regularisationLoss
+        return self.sampleLoss + self.__regularisationLoss
 
 
 class OptimizerSGD:

@@ -13,56 +13,56 @@ class PreProcess:
         }
         self.ScalingData = {'means': [], 'stds': []}                                # To be used when taking on user data
         if New:
-            self.NewDataset()
+            self.__NewDataset()
 
-    def NewDataset(self): # Generates a new random dataset
+    def __NewDataset(self): # Generates a new random dataset
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
-        Dataset = self.RemoveFeatures(Dataset)
-        Dataset = self.AdjustSkew(Dataset)                                          # Balances approved and rejected data 
+        Dataset = self.__RemoveFeatures(Dataset)
+        Dataset = self.__AdjustSkew(Dataset)                                          # Balances approved and rejected data 
 
         # Feature Engineering
 
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
-        self.ConvertToInteger()                                                     # Converts Categorical data (eg. male/female) into numerical
+        self.__ConvertToInteger()                                                     # Converts Categorical data (eg. male/female) into numerical
 
         self.__TrainY = self.FeatureColumns.pop()
 
-        self.Standardisation()                                                      # Scales all data to avoid large data from skewing the processes
+        self.__Standardisation()                                                      # Scales all data to avoid large data from skewing the processes
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
         self.__TrainX, self.__TrainY = ShuffleData(self.__TrainX, self.__TrainY)
 
-    def RemoveFeatures(self, Dataset):
+    def __RemoveFeatures(self, Dataset):
         # Removes specified features from the dataset
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = [row[1:] for row in features if row[0] not in self.__featuresToRemove]
         return DataMethod.Transpose(filteredFeatures)
 
-    def AdjustSkew(self, dataset):
+    def __AdjustSkew(self, dataset):
         # Adjusts the skewness of the dataset by balancing the number of 'Y' and 'N' labels
         Ones = 0
         Zeros = 0
-        NewDataset = []
+        NewData = []
         size = 200
 
-        while len(NewDataset) != size:
+        while len(NewData) != size:
             index = random.randint(0, len(dataset) - 1)
             row = dataset[index]
 
             if row[-1] == 'Y' and Ones != size // 2:
-                NewDataset.append(dataset.pop(index))
+                NewData.append(dataset.pop(index))
                 Ones += 1
 
             elif row[-1] == 'N' and Zeros != size // 2:
-                NewDataset.append(dataset.pop(index))
+                NewData.append(dataset.pop(index))
                 Zeros += 1
 
-        return NewDataset
+        return NewData
 
-    def ReplaceMissingVals(self):
+    def __ReplaceMissingVals(self):
         # Replaces missing values in each column with the most common or mean value
         Numbers = '1234567890'
         for Column in self.FeatureColumns:
@@ -80,7 +80,7 @@ class PreProcess:
                 if element == "":
                     Column[index] = ReplacementData
 
-    def ConvertToInteger(self):
+    def __ConvertToInteger(self):
         # Converts categorical values to integers using a predefined mapping
         for ColumnIndex, features in enumerate(self.FeatureColumns):
             for ElementIndex, element in enumerate(features):
@@ -91,7 +91,7 @@ class PreProcess:
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
 
-    def Standardisation(self):
+    def __Standardisation(self):
         # Standardizes the data by subtracting the mean and dividing by the standard deviation for each feature
         for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
@@ -112,13 +112,7 @@ class PreProcess:
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
         return self.__TrainX, self.__TrainY, TestX, TestY
-
-    def Display(self):
-        # Displays the training data
-        print("\nTraining Data")
-        for row in list(zip(self.__TrainX, self.__TrainY)):
-            print(row)
-
+    
     def encode(self, UserData):
         # Encodes user data by standardizing and mapping categorical values
         for x, val in enumerate(UserData):

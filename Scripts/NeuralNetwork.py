@@ -1,5 +1,5 @@
 from DataHandle import DataMethod, ShuffleData
-from ActivationLossAndOptimizers import BinaryCrossEntropy, OptimizerSGD
+from ActivationLossAndOptimisers import BinaryCrossEntropy, OptimiserSGD
 
 import matplotlib.pyplot as plt
 
@@ -15,7 +15,7 @@ class Model:
 
         # For backpass
         self.__LossFunction = BinaryCrossEntropy(self.__regularisationStrenght)                 # Loss function
-        self.__Optimizer = OptimizerSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)  # Optimizer
+        self.__Optimiser = OptimiserSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)  # Optimiser
 
     def add(self, layer):
         self.__Layers.append(layer)
@@ -51,7 +51,7 @@ class Model:
                 result = self.__forward(xBatch)
 
                 self.__LossFunction.forward(result, yBatch)
-                self.__LossFunction.calcregularisationLoss(self.__Layers[-1].getWeightsAndBiases()[0])
+                self.__LossFunction.calcRegularisationLoss(self.__Layers[-1].getWeightsAndBiases()[0])
 
                 accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
@@ -64,15 +64,15 @@ class Model:
                     else:
                         layer.backward(self.__Layers[-x].dinputs)
 
-                self.__Optimizer.adjustLearningRate(iteration)
+                self.__Optimiser.adjustLearningRate(iteration)
                 for layer in self.__Layers:
-                    self.__Optimizer.UpdateParameters(layer)
+                    self.__Optimiser.UpdateParameters(layer)
 
 
                 # Tracking variables
                 accHold.append(accuracy)
                 lossHold.append(self.__LossFunction.getLoss())
-                learningRateHold.append(self.__Optimizer.activeLearningRate)
+                learningRateHold.append(self.__Optimiser.activeLearningRate)
 
             accuracies.append(sum(accHold) / (len(accHold)))
             losses.append(sum(lossHold) / (len(lossHold)))

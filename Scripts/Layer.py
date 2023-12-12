@@ -1,4 +1,4 @@
-from ActivationLossAndOptimizers import ReLU, Sigmoid
+from ActivationLossAndOptimisers import ReLU, Sigmoid
 from DataHandle import DataMethod as DM
 from math import sqrt
 from random import gauss

@@ -40,9 +40,9 @@ class Sigmoid(Activation):
 
 # Loss - Measure how well the model performed
 class BinaryCrossEntropy:
-    def __init__(self, regularisationStrenght=0):
-        self.__sampleLoss = 0
-        self.__regularisationLoss = 0
+    def __init__(self, regularisationStrenght=0.0):
+        self.__sampleLoss = 0.0
+        self.__regularisationLoss = 0.0
         self.__regularisationStrenght = regularisationStrenght
 
     def forward(self, predictions, TrueVals):
@@ -63,7 +63,7 @@ class BinaryCrossEntropy:
         # Formula == (PredictVal - Tval) / ((1-PredictVal) * PredictVal)
         self.dinputs = [(PredictVal - Tval) / ((1-PredictVal) * PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
-    def calcregularisationLoss(self, layerWeights):
+    def calcRegularisationLoss(self, layerWeights):
         
         if self.__regularisationStrenght != 0:
             self.__regularisationLoss += 0.5 * self.__regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
@@ -72,20 +72,20 @@ class BinaryCrossEntropy:
         return self.__sampleLoss + self.__regularisationLoss
 
 
-class OptimizerSGD:
+class OptimiserSGD:
     def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):
-        self.InitialLearningRate = InitialLearningRate          # Starting Learning rate
-        self.minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
-        self.decay = decay                                      # Rate at which Learning rate decreases
-        self.momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
+        self.__InitialLearningRate = InitialLearningRate          # Starting Learning rate
+        self.__minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
+        self.__decay = decay                                      # Rate at which Learning rate decreases
+        self.__momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
         self.activeLearningRate = InitialLearningRate           # Working learning rate
 
     def adjustLearningRate(self, iter, mode="Linear"): # gradually decreases the learning rate to avoid overshooting the optimal parameters
-        if self.decay != 0:
+        if self.__decay != 0:
             if mode == "Linear":
-                self.activeLearningRate = max(self.InitialLearningRate / (1 + self.decay * iter), self.minimumLearningRate)
+                self.activeLearningRate = max(self.__InitialLearningRate / (1 + self.__decay * iter), self.__minimumLearningRate)
             elif mode == "Exponential":
-                self.activeLearningRate = max(self.InitialLearningRate * exp(-self.decay * iter), self.minimumLearningRate)
+                self.activeLearningRate = max(self.__InitialLearningRate * exp(-self.__decay * iter), self.__minimumLearningRate)
 
     # Function to update the parameters of a neural network layer using SGD with momentum
     def UpdateParameters(self, layer): 
@@ -94,17 +94,17 @@ class OptimizerSGD:
 
         weights, biases = layer.getWeightsAndBiases()
 
-        if self.momentum != 0:
+        if self.__momentum != 0:
             weightsVelocity, biasesVelocity = layer.getVelocities()
 
             # Adjust Weights    |    layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
 
             weightsVelocity = [[a - b for a, b in zip(velocityRow, dweightsRow)]
-                               for velocityRow, dweightsRow in zip(DM.Multiply(self.momentum, weightsVelocity),
+                               for velocityRow, dweightsRow in zip(DM.Multiply(self.__momentum, weightsVelocity),
                                                                   AdjustedDWeight)]
 
             # Adjust Biases    |    layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases
-            biasesVelocity = [a - b for a, b in zip(DM.Multiply(self.momentum, biasesVelocity), AdjustedDBiases)]
+            biasesVelocity = [a - b for a, b in zip(DM.Multiply(self.__momentum, biasesVelocity), AdjustedDBiases)]
 
             layer.setVelocities(weightsVelocity, biasesVelocity)
 

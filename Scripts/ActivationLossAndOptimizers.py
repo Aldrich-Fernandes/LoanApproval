@@ -26,14 +26,14 @@ class ReLU(Activation): # Rectified Linear Unit
 class Sigmoid(Activation):
     def __init__(self): 
         # So that a new instace is not created each time the forward() is run
-        self.positive = lambda x: 1 / (exp(-x) + 1)
-        self.negative = lambda x: exp(x) / (exp(x) + 1)
+        self.__positive = lambda x: 1 / (exp(-x) + 1)
+        self.__negative = lambda x: exp(x) / (exp(x) + 1)
 
     # Squashes data between 0 and 1
     def forward(self, inputs): 
 
         # Introduced different 
-        self.outputs = [self.negative(val[0]) if val[0] < 0 else self.positive(val[0]) for val in inputs] # avoids overflow errors with exp()
+        self.outputs = [self.__negative(val[0]) if val[0] < 0 else self.__positive(val[0]) for val in inputs] # avoids overflow errors with exp()
 
     def backward(self, dvalues):
         self.dinputs = [[a*b*(1-b)] for a,b in zip(dvalues, self.outputs)]
@@ -41,7 +41,7 @@ class Sigmoid(Activation):
 # Loss - Measure how well the model performed
 class BinaryCrossEntropy:
     def __init__(self, regularisationStrenght=0):
-        self.sampleLoss = 0
+        self.__sampleLoss = 0
         self.__regularisationLoss = 0
         self.__regularisationStrenght = regularisationStrenght
 
@@ -52,7 +52,7 @@ class BinaryCrossEntropy:
         # Formula used: -(true * log(Predicted) + (1 - true) * log(1 - Predicted))
         sampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) for tVal, pVal in zip(TrueVals, predictions)]
 
-        self.sampleLoss = sum(sampleLoss) / len(sampleLoss) # Average of all samples
+        self.__sampleLoss = sum(sampleLoss) / len(sampleLoss) # Average of all samples
 
         self.__regularisationLoss = 0 # Reset for that epoch
 
@@ -69,7 +69,7 @@ class BinaryCrossEntropy:
             self.__regularisationLoss += 0.5 * self.__regularisationStrenght * sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
 
     def getLoss(self):
-        return self.sampleLoss + self.__regularisationLoss
+        return self.__sampleLoss + self.__regularisationLoss
 
 
 class OptimizerSGD:

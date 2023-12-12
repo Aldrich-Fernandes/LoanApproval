@@ -11,26 +11,25 @@ class PreProcess:
             "Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1.,
             "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0., "Rural": 2., "3+": 2.
         }
-        self.ScalingData = {'means': [], 'stds': []}
+        self.ScalingData = {'means': [], 'stds': []}                                # To be used when taking on user data
         if New:
             self.NewDataset()
 
-    def NewDataset(self):
+    def NewDataset(self): # Generates a new random dataset
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         Dataset = self.RemoveFeatures(Dataset)
-        Dataset = self.AdjustSkew(Dataset)
+        Dataset = self.AdjustSkew(Dataset)                                          # Balances approved and rejected data 
 
         # Feature Engineering
+
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
-        # self.ReplaceMissingVals()  # Commented out, not being used
-
-        self.ConvertToInteger()
+        self.ConvertToInteger()                                                     # Converts Categorical data (eg. male/female) into numerical
 
         self.__TrainY = self.FeatureColumns.pop()
 
-        self.Standardisation()
+        self.Standardisation()                                                      # Scales all data to avoid large data from skewing the processes
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
@@ -134,7 +133,8 @@ class PreProcess:
 
 class DataMethod:
     @staticmethod
-    def CsvToArray(path): # loads all data then picks the a random chunk.
+    def CsvToArray(path): 
+        # loads all data ignoring entries with missing data
         table = []
         with open(path, "r") as file:
             csvreader = csv.reader(file)
@@ -156,11 +156,11 @@ class DataMethod:
         elif not isinstance(arr2, list):
             arr2 = [[float(arr2)] for _ in range(len(arr1))]
 
-        arr1_shape = len(arr1), len(arr1[0])
-        arr2_shape = len(arr2), len(arr2[0])
+        arr1Shape = len(arr1), len(arr1[0])
+        arr2Shape = len(arr2), len(arr2[0])
 
-        if arr1_shape[1] != arr2_shape[0]:
-            raise ValueError(f"Matrix dimensions are not compatible for dot product: {arr1_shape} and {arr2_shape}.")
+        if arr1Shape[1] != arr2Shape[0]:
+            raise ValueError(f"Matrix dimensions are not compatible for dot product: {arr1Shape} and {arr2Shape}.")
 
         output = [[sum(a * b for a, b in zip(row, col)) for col in DataMethod.Transpose(arr2)] for row in arr1]
 
@@ -182,7 +182,7 @@ class DataMethod:
         else: # For 1d x 1d
             return [a * b for a, b in zip(arr1, arr2)]
 
-def ShuffleData(X, Y): # shuffles two lists while maintaining corresspronding thier
+def ShuffleData(X, Y): # shuffles two lists while maintaining thier corresspronding 
     a = list(zip(X, Y))
     random.shuffle(a)
     X, Y = zip(*a)

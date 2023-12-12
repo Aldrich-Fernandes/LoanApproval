@@ -5,19 +5,19 @@ import tkinter as tk
 
 class GUI:
     def __init__(self):
-        self.model, self.PreProcessor = self.setup()
-        self.Font = ('Arial', 14)
+        self.__model, self.__PreProcessor = self.setup()
+        self.__Font = ('Arial', 14)
         
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.exit)
         self.root.title("Home Loan Eligibility Application")
         self.root.geometry("800x600")
 
-        self.PredictFrame = tk.Frame(self.root, borderwidth=2)
-        self.PredictFrame.pack(padx=20, pady=20)
+        self.__PredictFrame = tk.Frame(self.root, borderwidth=2)
+        self.__PredictFrame.pack(padx=20, pady=20)
 
-        self.resultVal = tk.StringVar()
-        self.resultVal.set("...")
+        self.__resultVal = tk.StringVar()
+        self.__resultVal.set("...")
 
     def exit(self):
         self.root.destroy()
@@ -50,21 +50,21 @@ class GUI:
         self.UserData = [tk.StringVar() for _ in range(len(DataToGet.keys()))]
 
         for index, (key, data) in enumerate(DataToGet.items()):
-            label = tk.Label(self.PredictFrame, text=key, font=self.Font)
+            label = tk.Label(self.__PredictFrame, text=key, font=self.__Font)
             label.grid(row=index, column=0, sticky="e", padx=5, pady=5)
 
             if type(data) == list:
                 for col, option in enumerate(data):
-                    rb = tk.Radiobutton(self.PredictFrame, text=option, value=option, variable=self.UserData[index], font=self.Font)
+                    rb = tk.Radiobutton(self.__PredictFrame, text=option, value=option, variable=self.UserData[index], font=self.__Font)
                     rb.grid(row=index, column=col + 1, padx=5, pady=5)
             else:
-                entry = tk.Entry(self.PredictFrame, textvariable=self.UserData[index], font=self.Font)
+                entry = tk.Entry(self.__PredictFrame, textvariable=self.UserData[index], font=self.__Font)
                 entry.grid(row=index, column=1, padx=5, pady=5)
 
-        self.ProcessBtn = tk.Button(self.PredictFrame, text="Enter", font=self.Font, command=self.ProcessUserData)
+        self.ProcessBtn = tk.Button(self.__PredictFrame, text="Enter", font=self.__Font, command=self.ProcessUserData)
         self.ProcessBtn.grid(row=len(DataToGet), column=0, columnspan=2, pady=10)
 
-        self.ResultLabel = tk.Label(self.PredictFrame, textvariable=self.resultVal, font=self.Font)
+        self.ResultLabel = tk.Label(self.__PredictFrame, textvariable=self.__resultVal, font=self.__Font)
         self.ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
 
     def ProcessUserData(self):
@@ -73,18 +73,13 @@ class GUI:
             self.CollectedData.append(data.get())
 
         if not ('' in self.CollectedData or len(self.CollectedData) != 6):
-            UserData = self.PreProcessor.encode(self.CollectedData)
-            self.model.Predict([UserData])
+            UserData = self.__PreProcessor.encode(self.CollectedData)
+            self.__model.Predict([UserData])
 
-            result = self.model.Result
-            print("Here")
-            if round(result) == 1:
-                txt = f"You a likely to be approved. Probablility = {result * 100}%"
-            else:
-                txt = f"You a unlikely to be approved. Probablility = {result * 100}%"
-            print(txt)
-            self.resultVal.set(txt)
-            self.ResultLabel.config(textvariable=self.resultVal)
+            result = self.__model.Result
+            
+            self.__resultVal.set(f"You have a {result*100}% chance of being Approved")
+            self.ResultLabel.config(textvariable=self.__resultVal)
         else:
             print(self.CollectedData)
             print("Missing or incorrect data.")

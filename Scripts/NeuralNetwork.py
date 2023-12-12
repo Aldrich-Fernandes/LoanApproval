@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 DM = DataMethod()
 
 class Model:
-    def __init__(self, Epochs=10, regularisationStrenght=0.001):
+    def __init__(self, Epochs=10, regularisationStrenght=0.001):                            # Creates a blank model
         self.Accuracy = 0.0
         self.regularisationStrenght = regularisationStrenght
         self.Epochs = Epochs
@@ -20,7 +20,7 @@ class Model:
     def add(self, layer):
         self.Layers.append(layer)
 
-    def forward(self, data):
+    def forward(self, data):                                            # Forward progragation through layers
         for x, layer in enumerate(self.Layers):
             if x == 0:
                 layer.forward(data)
@@ -29,21 +29,21 @@ class Model:
 
         return self.Layers[-1].activation.outputs
 
-    def train(self, X, Y, batch=16, show=False, canGraph=False):
+    def train(self, X, Y, batch=16, show=False, canGraph=False):        # Fits the model based on input data
         losses = []
         accuracies = []
         lrs = []
         sampleSize = len(Y)
 
-        # Epochs
+        # Epochs - How many times the model will see the data
         for iteration in range(self.Epochs):
             accHold = []
             lossHold = []
             learningRateHold = []
             
-            ShuffleData(X, Y)
+            ShuffleData(X, Y)                                                                       # Improves generalisation
         
-            for i in range(0, sampleSize, batch):
+            for i in range(0, sampleSize, batch):                                                   # Reduces overfitting
                 xBatch = X[i:i+batch] 
                 yBatch = Y[i:i+batch]
 
@@ -68,6 +68,8 @@ class Model:
                 for layer in self.Layers:
                     self.Optimizer.UpdateParameters(layer)
 
+
+                # Tracking variables
                 accHold.append(accuracy)
                 lossHold.append(self.LossFunction.getLoss())
                 learningRateHold.append(self.Optimizer.activeLearningRate)
@@ -82,7 +84,7 @@ class Model:
         if canGraph:
             self.graph(accuracies, losses, lrs)
 
-    def test(self, TestX, TestY, showTests=False):
+    def test(self, TestX, TestY, showTests=False):                      # Tests the model using data it has never seen
         result = self.forward(TestX)
         
         if showTests:
@@ -92,10 +94,10 @@ class Model:
         self.Accuracy = sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)
         print(f"\nTest Accuracy: {self.Accuracy}")
 
-    def Predict(self, UserData):
+    def Predict(self, UserData):                                        # Passes Userdata through model
         self.Result = round(self.forward(UserData)[0], 4)
 
-    def graph(self, accuracies, losses, lrs, sep=True):
+    def graph(self, accuracies, losses, lrs, sep=True):                 # Displays obserable data
         X = [x for x in range(1, self.Epochs+1)]
         if not sep:
             plt.plot(X, losses, label='Loss')

@@ -1,4 +1,3 @@
-
 from DataHandle import DataMethod, ShuffleData
 from ActivationLossAndOptimizers import BinaryCrossEntropy, OptimizerSGD
 

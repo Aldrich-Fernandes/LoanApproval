@@ -78,7 +78,7 @@ class OptimiserSGD:
         self.__minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
         self.__decay = decay                                      # Rate at which Learning rate decreases
         self.__momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
-        self.activeLearningRate = InitialLearningRate           # Working learning rate
+        self.activeLearningRate = InitialLearningRate             # Working learning rate
 
     def adjustLearningRate(self, iter, mode="Linear"): # gradually decreases the learning rate to avoid overshooting the optimal parameters
         if self.__decay != 0:

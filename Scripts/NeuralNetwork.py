@@ -15,10 +15,12 @@ class Model:
 
         # For backpass
         self.__LossFunction = BinaryCrossEntropy(self.__regularisationStrenght)                 # Loss function
-        self.__Optimiser = OptimiserSGD(InitialLearningRate=1e-4, decay=5e-5, momentum=0.95)  # Optimiser
 
     def add(self, layer):
         self.__Layers.append(layer)
+
+    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
+        self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum)
 
     def __forward(self, data):                                            # Forward progragation through layers
         for x, layer in enumerate(self.__Layers):

@@ -1,28 +1,3 @@
-class Cell():
-    pass
+a = [1, 2, 3, 4, 5, 6]
 
-class Traversals:
-    def __init__():
-        pass
-
-    def __leftnode():
-        pass
-
-
-    def solve():
-        pass
-
-class First(Traversals):
-    def solve():
-        pass
-
-    def __leftnode():
-        pass
-
-class Second(Traversals):
-    def solve():
-        pass
-
-
-def main():
-    pass
+print([1, 2, 3, 4, 5, 6][2:])

@@ -23,9 +23,8 @@ class GUI:
             PreProcessor = PreProcess(New=True)
             TrainX, TrainY, TestX, TestY = PreProcessor.getData()
             
-            model = Model(Epochs=15)
+            model = Model(Epochs=20)
             model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
-            model.configOptimizer()
 
             model.train(TrainX, TrainY)
             model.test(TestX, TestY)
@@ -92,3 +91,15 @@ def main():
     myGUI.root.mainloop()
 
 main()
+
+def test():
+    PreProcessor = PreProcess(New=True)
+    TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+
+    model = Model(Epochs=20)
+    model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
+
+    model.train(TrainX, TrainY, canGraph=True)
+    model.test(TestX, TestY, showTests=True)
+
+#test()

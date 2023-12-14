@@ -39,6 +39,7 @@ class PreProcess:
         # Removes specified features from the dataset
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = [row[1:] for row in features if row[0] not in self.__featuresToRemove]
+
         return DataMethod.Transpose(filteredFeatures)
 
     def __AdjustSkew(self, dataset):
@@ -46,7 +47,8 @@ class PreProcess:
         Ones = 0
         Zeros = 0
         NewData = []
-        size = 200
+        size = 250
+
 
         while len(NewData) != size:
             index = random.randint(0, len(dataset) - 1)

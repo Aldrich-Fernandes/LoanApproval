@@ -73,18 +73,20 @@ class BinaryCrossEntropy:
 
 
 class OptimiserSGD:
-    def __init__(self, InitialLearningRate=0.01, decay=1e-4, minimumLearningRate=1e-5, momentum=0.9):
+    def __init__(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, minimumLearningRate=1e-5, mode="Linear"):
         self.__InitialLearningRate = InitialLearningRate          # Starting Learning rate
         self.__minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
         self.__decay = decay                                      # Rate at which Learning rate decreases
         self.__momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
         self.activeLearningRate = InitialLearningRate             # Working learning rate
 
-    def adjustLearningRate(self, iter, mode="Linear"): # gradually decreases the learning rate to avoid overshooting the optimal parameters
+        self.__mode = mode
+
+    def adjustLearningRate(self, iter): # gradually decreases the learning rate to avoid overshooting the optimal parameters
         if self.__decay != 0:
-            if mode == "Linear":
+            if self.__mode == "Linear":
                 self.activeLearningRate = max(self.__InitialLearningRate / (1 + self.__decay * iter), self.__minimumLearningRate)
-            elif mode == "Exponential":
+            elif self.__mode == "Exponential":
                 self.activeLearningRate = max(self.__InitialLearningRate * exp(-self.__decay * iter), self.__minimumLearningRate)
 
     # Function to update the parameters of a neural network layer using SGD with momentum

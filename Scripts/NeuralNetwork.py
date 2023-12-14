@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 DM = DataMethod()
 
 class Model:
-    def __init__(self, Epochs=10, regularisationStrenght=0.001):                            # Creates a blank model
+    def __init__(self, Epochs=25, regularisationStrenght=0.001):                            # Creates a blank model
         self.Accuracy = 0.0
         self.__regularisationStrenght = regularisationStrenght
         self.__Epochs = Epochs
@@ -15,12 +15,13 @@ class Model:
 
         # For backpass
         self.__LossFunction = BinaryCrossEntropy(self.__regularisationStrenght)                 # Loss function
+        self.__Optimiser = OptimiserSGD(mode="Exponential")
 
     def add(self, layer):
         self.__Layers.append(layer)
 
-    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
-        self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum)
+    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, mode="Linear"):
+        self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum, mode)
 
     def __forward(self, data):                                            # Forward progragation through layers
         for x, layer in enumerate(self.__Layers):
@@ -31,7 +32,7 @@ class Model:
 
         return self.__Layers[-1].activation.outputs
 
-    def train(self, X, Y, batch=16, show=False, canGraph=False):        # Fits the model based on input data
+    def train(self, X, Y, batch=32, show=False, canGraph=False):        # Fits the model based on input data
         losses = []
         accuracies = []
         lrs = []
@@ -85,6 +86,7 @@ class Model:
         
         if canGraph:
             self.__graph(accuracies, losses, lrs)
+            input("Press ENTER to continue")
 
     def test(self, TestX, TestY, showTests=False):                      # Tests the model using data it has never seen
         result = self.__forward(TestX)
@@ -118,8 +120,8 @@ class Model:
     def __DisplayResults(self, iteration, loss, accuracy, learningRate):
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
-    def saveModel(self):
+    def saveModel(self):  # save epochs regularisationStrenght, number of layers and thier weighs and biases
         pass
 
-    def loadModel(self):
+    def loadModel(self): # if 1 parameters: load data from file --- multiple parameters: from adjusted data
         pass

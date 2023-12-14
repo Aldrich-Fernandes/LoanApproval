@@ -23,6 +23,13 @@ class Model:
     def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, mode="Linear"):
         self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum, mode)
 
+    def updateEpoch(self, epoch):
+        self.__Epochs = epoch
+
+    def updateRegStr(self, regStr):
+        self.__regularisationStrenght = regStr
+        self.__LossFunction.updateRegStr(regStr)
+
     def __forward(self, data):                                            # Forward progragation through layers
         for x, layer in enumerate(self.__Layers):
             if x == 0:

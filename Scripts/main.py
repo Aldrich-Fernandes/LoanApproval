@@ -19,8 +19,8 @@ class GUI:
         self.notebook.pack(expand=True, fill='both')
 
         # Create tabs
-        self.LoadPredictionGUI()
-        self.LoadHyperparametersTab()
+        self.__LoadPredictionGUI()
+        self.__LoadHyperparametersTab()
 
         # save a old model and by default load that data so that a new model doesnt need to be trained. They can retrain a model using the hyperparameter tab.
         # If they have pressed the retrain button, then a save model button will pop up which wil allow so. 
@@ -28,7 +28,7 @@ class GUI:
 
         self.__model, self.__PreProcessor = self.__setup()
 
-    def LoadHyperparametersTab(self):
+    def __LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
         hyperparameterFrame = ttk.Frame(self.notebook)
         self.notebook.add(hyperparameterFrame, text="Hyperparameters")
@@ -66,9 +66,9 @@ class GUI:
         tk.Radiobutton(hyperparameterFrame, text="Exponential", value="Exponential", variable=self.__updateValsTo["momentum"], font=self.__Font).grid(row=7, column=2, padx=10, pady=5)
         
 
-        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.updateHyperparameters).grid(row=8, column=0, columnspan=2, pady=10)
+        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(row=8, column=0, columnspan=2, pady=10)
 
-    def updateHyperparameters(self):
+    def __updateHyperparameters(self):
         try:
 
             optimiserVals = [eval(item) for item in self.__updateValsTo.items()][2:]
@@ -121,7 +121,7 @@ class GUI:
         print("Too many attempts... Aborting Application.")
         self.__exit()
 
-    def LoadPredictionGUI(self):
+    def __LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.notebook)
         self.notebook.add(predictFrame, text="Prediction")
 

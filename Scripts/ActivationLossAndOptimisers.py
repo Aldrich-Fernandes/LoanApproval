@@ -63,6 +63,9 @@ class BinaryCrossEntropy:
         # Formula == (PredictVal - Tval) / ((1-PredictVal) * PredictVal)
         self.dinputs = [(PredictVal - Tval) / ((1-PredictVal) * PredictVal) for Tval, PredictVal in zip(TrueVals, predicted)]
 
+    def updateRegStr(self, regStr):
+        self.__regularisationStrenght = regStr
+
     def calcRegularisationLoss(self, layerWeights):
         
         if self.__regularisationStrenght != 0:
@@ -73,9 +76,9 @@ class BinaryCrossEntropy:
 
 
 class OptimiserSGD:
-    def __init__(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, minimumLearningRate=1e-5, mode="Linear"):
+    def __init__(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, mode="Linear"):
         self.__InitialLearningRate = InitialLearningRate          # Starting Learning rate
-        self.__minimumLearningRate = minimumLearningRate          # Lower bound Leanring rate
+        self.__minimumLearningRate = InitialLearningRate * 0.001  # Lower bound Leanring rate
         self.__decay = decay                                      # Rate at which Learning rate decreases
         self.__momentum = momentum                                # Makes Accuracy and Loss change in a consistant way in one direction
         self.activeLearningRate = InitialLearningRate             # Working learning rate

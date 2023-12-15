@@ -144,11 +144,11 @@ class Model:
         except FileExistsError:
             return "Filename already used. Try again."
 
-
-    def loadModel(self): # if 1 parameters: load data from file --- multiple parameters: from adjusted data
+    def loadModel(self, filePath): # if 1 parameters: load data from file --- multiple parameters: from adjusted data
+        self.resetLayers()
+        
         try:
-            fileName = f"DataSet\\Models\\{str(input("Load model: "))}.txt"
-            file = open(fileName,  "r")
+            file = open(filePath,  "r")
             scalingData = eval(file.readline().rstrip())
             for layer in self.__Layers:
                 weights = eval(file.readline().rstrip())
@@ -158,6 +158,8 @@ class Model:
                     print("Layers dont match... cant load.")
                 else:
                     layer.setWeightsAndBiases(weights, biases)
+
+            return scalingData
         except FileNotFoundError:
-            print("File not found. Try again.")
-            self.loadModel()
+            return -1
+

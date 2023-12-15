@@ -150,10 +150,15 @@ class DataMethod:
 
     @staticmethod
     def DotProduct(arr1, arr2):
-        if not isinstance(arr1, list):
-            arr1 = [[float(arr1) for _ in range(len(arr2[0]))] for _ in range(len(arr2))]
+        if not isinstance(arr1, list):                      # If they are scalars
+            arr1 = [float(arr1) for _ in range(len(arr2[0]))]
         elif not isinstance(arr2, list):
             arr2 = [[float(arr2)] for _ in range(len(arr1))]
+
+        elif not isinstance(arr1[0], list):                 # If they are 1d arrays
+            arr1 = [arr1]
+        elif not isinstance(arr2[0], list):
+            arr2 = [[item] for item in arr2]
 
         arr1Shape = len(arr1), len(arr1[0])
         arr2Shape = len(arr2), len(arr2[0])
@@ -161,10 +166,9 @@ class DataMethod:
         if arr1Shape[1] != arr2Shape[0]:
             raise ValueError(f"Matrix dimensions are not compatible for dot product: {arr1Shape} and {arr2Shape}.")
 
-        output = [[sum(a * b for a, b in zip(row, col)) for col in DataMethod.Transpose(arr2)] for row in arr1]
+        output = [[sum(a * b for a, b in zip(row, col)) for col in zip(*arr2)] for row in arr1]
 
         return output
-
     @staticmethod
     def Multiply(arr1, arr2): # dimensions of arr1 Must be <= dimensions of arr2
         if not isinstance(arr1, list): # Ensures dimentions are atleast 1 dimensional

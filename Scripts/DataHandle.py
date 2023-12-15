@@ -2,20 +2,15 @@ import csv
 import random
 
 class PreProcess:
-    def __init__(self, New=False):
+    def __init__(self):
         # Initial Data Holders
         self.__TrainX = []
         self.__TrainY = []
         self.__featuresToRemove = ["Loan_ID", "Self_Employed", "Gender", "Education", "Married", "Dependents"]
-        self.CategoricalFeatureKeys = {
-            "Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1.,
-            "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0., "Rural": 2., "3+": 2.
-        }
+        self.CategoricalFeatureKeys = { "Y": 1., "Urban": 1., "N": 0., "Semiurban": 0., "Rural": 2. }
         self.ScalingData = {'means': [], 'stds': []}                                # To be used when taking on user data
-        if New:
-            self.__NewDataset()
 
-    def __NewDataset(self): # Generates a new random dataset
+    def newDataset(self): # Generates a new random dataset
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         Dataset = self.__RemoveFeatures(Dataset)
@@ -114,7 +109,8 @@ class PreProcess:
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
         return self.__TrainX, self.__TrainY, TestX, TestY
-    
+
+
     def encode(self, UserData):
         # Encodes user data by standardizing and mapping categorical values
         for x, val in enumerate(UserData):

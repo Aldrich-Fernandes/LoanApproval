@@ -7,32 +7,41 @@ from tkinter import ttk
 
 class GUI:
     def __init__(self):
-        self.__model, self.__PreProcessor = self.__setup()
-        self.__Font = ('Arial', 14)
-        
+        self.__model = Model()
+        self.__PreProcessor = PreProcess()
+
+        self.__newModel()
+
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.__exit)
         self.root.title("Home Loan Eligibility Application")
-        self.root.geometry("800x600")
+        self.root.geometry("900x600")
+
+        self.__Font = ('Arial', 14)
+        self.__training = False
+        self._resultVal = tk.StringVar(value="...")
+        self._saveStatusVal = tk.StringVar(value="Unsaved")
+        self._fileName = tk.StringVar()
 
         # Create a notebook (tabs container)
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(expand=True, fill='both')
+        self.__notebook = ttk.Notebook(self.root)
+        self.__notebook.pack(expand=True, fill='both')
 
         # Create tabs
-        self.__LoadPredictionGUI()
-        self.__LoadHyperparametersTab()
+        self._LoadPredictionGUI()
+        self._LoadHyperparametersTab()
 
         # save a old model and by default load that data so that a new model doesnt need to be trained. They can retrain a model using the hyperparameter tab.
         # If they have pressed the retrain button, then a save model button will pop up which wil allow so. 
         # they can also choose to load a model in a dropdown menu which aslo has a exit button.
 
-    def __LoadHyperparametersTab(self):
-        # Create a new frame for the Hyperparameters tab
-        hyperparameterFrame = ttk.Frame(self.notebook)
-        self.notebook.add(hyperparameterFrame, text="Hyperparameters")
 
-        self.__updateValsTo = {"newEpoch": tk.IntVar(value = 25),
+    def _LoadHyperparametersTab(self):
+        # Create a new frame for the Hyperparameters tab
+        hyperparameterFrame = ttk.Frame(self.__notebook)
+        self.__notebook.add(hyperparameterFrame, text="Hyperparameters")
+
+        self._updateValsTo = {"newEpoch": tk.IntVar(value = 25),
                              "newRegStr": tk.DoubleVar(value = 0.001),
                              "initialLearningRate": tk.DoubleVar(value = 0.0001),
                              "decay": tk.DoubleVar(value = 0.00005),
@@ -42,29 +51,29 @@ class GUI:
 
         # Model Parameters
         tk.Label(hyperparameterFrame, text="Epochs:", font=self.__Font).grid(row=0, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["newEpoch"], font=self.__Font).grid(row=0, column=1, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newEpoch"], font=self.__Font).grid(row=0, column=1, padx=10, pady=5)
 
         tk.Label(hyperparameterFrame, text="Regularization Strength:", font=self.__Font).grid(row=1, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["newRegStr"], font=self.__Font).grid(row=1, column=1, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newRegStr"], font=self.__Font).grid(row=1, column=1, padx=10, pady=5)
 
         # Optimiser Parameters
         tk.Label(hyperparameterFrame, text="OPTIMISER PARAMETERS", font=self.__Font).grid(row=3, column=0, columnspan=2, padx=10, pady=5)
 
         tk.Label(hyperparameterFrame, text="Initial Learning Rate:", font=self.__Font).grid(row=4, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["initialLearningRate"], font=self.__Font).grid(row=4, column=1, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["initialLearningRate"], font=self.__Font).grid(row=4, column=1, padx=10, pady=5)
 
         tk.Label(hyperparameterFrame, text="Decay:", font=self.__Font).grid(row=5, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["decay"], font=self.__Font).grid(row=5, column=1, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["decay"], font=self.__Font).grid(row=5, column=1, padx=10, pady=5)
 
         tk.Label(hyperparameterFrame, text="Momentum:", font=self.__Font).grid(row=6, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["momentum"], font=self.__Font).grid(row=6, column=1, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["momentum"], font=self.__Font).grid(row=6, column=1, padx=10, pady=5)
 
         tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(row=8, column=0, columnspan=3, pady=10)
 
     def __updateHyperparameters(self):
         try:
 
-            optimiserVals = [item.get() for item in list(self.__updateValsTo.values())]
+            optimiserVals = [item.get() for item in list(self._updateValsTo.values())]
             input(optimiserVals)
             
             # Apply hyperparameters to the model
@@ -74,38 +83,53 @@ class GUI:
             self.__model.configOptimizer(optimiserVals[2], optimiserVals[3], optimiserVals[4])
 
             print("Retraining model...")
-            self.__model, self.__PreProcessor = self.__setup()
-        
+            self.__model.resetLayers()
+
+            acc = 0
+            while acc <= 0.7:
+                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+                self.__model.resetLayers()
+                self.__model.train(TrainX, TrainY)
+                self.__model.test(TestX, TestY)
+                accuracy = self.__model.Accuracy
+                
+                self.__training = True
+
         except ValueError:
             print("Invalid input for epochs or regularization strength. Please enter valid values.")
 
     def __exit(self):
         self.root.destroy()
 
-    def __setup(self):
-        loop = True
-        while loop:
-            PreProcessor = PreProcess(New=True)
-            TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-            
-            model = Model()
-            model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
+    def __newModel(self):
 
-            model.train(TrainX, TrainY)
-            model.test(TestX, TestY)
-            accuracy = model.Accuracy
+        self.__PreProcessor.newDataset()
+        TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+
+        self.__model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
+
+        while True:
+
+            self.__model.train(TrainX, TrainY)
+            self.__model.test(TestX, TestY)
+            accuracy = self.__model.Accuracy
     
             if accuracy <= 0.7:
-                print(f"Unstable Model. Retraining...\n")
+                print(f"Unstable Model - Accuracy: {accuracy}. \nRetraining...\n")
+                self.__model.resetLayers()
+                self.__PreProcessor.newDataset()
+                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
             else:
-                return model, PreProcessor
+                print(f"Model Successful - Accuracy: {accuracy}")
+                self.__training = False
+                break
 
-    def __LoadPredictionGUI(self):
-        predictFrame = ttk.Frame(self.notebook)
-        self.notebook.add(predictFrame, text="Prediction")
+    def __loadDefault(self):
+        pass
 
-        self.__resultVal = tk.StringVar()
-        self.__resultVal.set("...")
+    def _LoadPredictionGUI(self):
+        predictFrame = ttk.Frame(self.__notebook)
+        self.__notebook.add(predictFrame, text="Prediction")
 
         DataToGet = {'Applicant monthly income: ': -1,
                      'Coapplicant monthly income: ': -1,
@@ -113,6 +137,7 @@ class GUI:
                      'Loan amount term (months): ': -1,
                      'Credit history meet guidelines?: ': ["Yes", "No"],
                      'Property area: ': ["Urban", "Semiurban", "Rural"]}
+        
         self.UserData = [tk.StringVar() for _ in range(len(DataToGet.keys()))]
 
         for index, (key, data) in enumerate(DataToGet.items()):
@@ -126,39 +151,75 @@ class GUI:
 
         tk.Button(predictFrame, text="Enter", font=self.__Font, command=self.__ProcessUserData).grid(row=len(DataToGet), column=0, columnspan=2, pady=10)
 
-        self.ResultLabel = tk.Label(predictFrame, textvariable=self.__resultVal, font=self.__Font)
-        self.ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
+        self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
+        self._ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
+
+        self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
+        self._saveStatusLabel.grid(row=len(DataToGet)+4, column=0, padx=5, pady=5)
+
+        tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
+        tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(row=len(DataToGet)+3, column=2, padx=5, pady=10)
+
+    def _saveModel(self):
+        if self._fileName.get() != "":
+            filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
+            status = self.__model.saveModel(filePath, self.__PreProcessor.ScalingData)
+            self._saveStatusVal.set(status)
+            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+
 
     def __ProcessUserData(self):
-        self.CollectedData = []
-        for data in self.UserData:
-            self.CollectedData.append(data.get())
+        if not self.__training:
+            try:
+                self.CollectedData = []
+                for data in self.UserData:
+                    self.CollectedData.append(data.get())
 
-        if not ('' in self.CollectedData or len(self.CollectedData) != 6):
-            UserData = self.__PreProcessor.encode(self.CollectedData)
-            self.__model.Predict([UserData])
+                if not ('' in self.CollectedData or len(self.CollectedData) != 6):
+                    UserData = self.__PreProcessor.encode(self.CollectedData)
+                    self.__model.Predict([UserData])
 
-            result = round(self.__model.Result, 4)
-            
-            self.__resultVal.set(f"You have a {result*100}% chance of being Approved")
-            self.ResultLabel.config(textvariable=self.__resultVal)
+                    result = round(self.__model.Result, 4)
+                    
+                    self._resultVal.set(f"You have a {result*100}% chance of being Approved")
+                    self._ResultLabel.config(textvariable=self._resultVal)
+                else:
+                    print(self.CollectedData)
+                    print("Missing or incorrect data.")
+            except ValueError:
+                print(f"Error in userdata")
         else:
-            print(self.CollectedData)
-            print("Missing or incorrect data.")
+            print("Model is training. Please wait.")
 
 def main():
     myGUI = GUI()
     myGUI.root.mainloop()
 
 def test():
-    PreProcessor = PreProcess(New=True)
+    PreProcessor = PreProcess()
+    PreProcessor.newDataset()
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
 
     model = Model()
     model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
 
-    model.train(TrainX, TrainY, canGraph=True)
-    model.test(TestX, TestY, showTests=True)
+    model.loadModel()
+
+    while not True:
+
+        model.train(TrainX, TrainY)
+        model.test(TestX, TestY)
+        acc = model.Accuracy
+
+        if acc <= 0.7:
+            print(f"Retrain Model.")
+            model.resetLayers()
+            PreProcessor.newDataset()
+            TrainX, TrainY, TestX, TestY = PreProcessor.getData()
+        else:
+            break
+
+    #model.saveModel(PreProcessor.ScalingData)
 
 
 

@@ -15,13 +15,13 @@ class Model:
 
         # For backpass
         self.__LossFunction = BinaryCrossEntropy(self.__regularisationStrenght)                 # Loss function
-        self.__Optimiser = OptimiserSGD(mode="Exponential")
+        self.__Optimiser = OptimiserSGD()
 
     def add(self, layer):
         self.__Layers.append(layer)
 
-    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, mode="Linear"):
-        self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum, mode)
+    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
+        self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum)
 
     def updateEpoch(self, epoch):
         self.__Epochs = epoch

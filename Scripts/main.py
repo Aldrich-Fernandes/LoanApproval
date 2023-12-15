@@ -7,6 +7,7 @@ from tkinter import ttk
 
 class GUI:
     def __init__(self):
+        self.__model, self.__PreProcessor = self.__setup()
         self.__Font = ('Arial', 14)
         
         self.root = tk.Tk()
@@ -26,8 +27,6 @@ class GUI:
         # If they have pressed the retrain button, then a save model button will pop up which wil allow so. 
         # they can also choose to load a model in a dropdown menu which aslo has a exit button.
 
-        self.__model, self.__PreProcessor = self.__setup()
-
     def __LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
         hyperparameterFrame = ttk.Frame(self.notebook)
@@ -37,8 +36,7 @@ class GUI:
                              "newRegStr": tk.DoubleVar(value = 0.001),
                              "initialLearningRate": tk.DoubleVar(value = 0.0001),
                              "decay": tk.DoubleVar(value = 0.00005),
-                             "momentum": tk.DoubleVar(value=0.95),
-                             "mode": tk.StringVar(value= "Linear")}
+                             "momentum": tk.DoubleVar(value = 0.95)}
 
         # Add widgets for adjusting hyperparameters
 
@@ -61,26 +59,22 @@ class GUI:
         tk.Label(hyperparameterFrame, text="Momentum:", font=self.__Font).grid(row=6, column=0, padx=10, pady=5)
         tk.Entry(hyperparameterFrame, textvariable=self.__updateValsTo["momentum"], font=self.__Font).grid(row=6, column=1, padx=10, pady=5)
 
-        tk.Label(hyperparameterFrame, text="Mode:", font=self.__Font).grid(row=7, column=0, padx=10, pady=5)
-        tk.Radiobutton(hyperparameterFrame, text="Linear", value="Linear", variable=self.__updateValsTo["momentum"], font=self.__Font).grid(row=7, column=1, padx=10, pady=5)
-        tk.Radiobutton(hyperparameterFrame, text="Exponential", value="Exponential", variable=self.__updateValsTo["momentum"], font=self.__Font).grid(row=7, column=2, padx=10, pady=5)
-        
-
-        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(row=8, column=0, columnspan=2, pady=10)
+        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(row=8, column=0, columnspan=3, pady=10)
 
     def __updateHyperparameters(self):
         try:
 
-            optimiserVals = [eval(item) for item in self.__updateValsTo.items()][2:]
+            optimiserVals = [item.get() for item in list(self.__updateValsTo.values())]
+            input(optimiserVals)
             
             # Apply hyperparameters to the model
-            self.__model.updateEpoch(eval(self.__updateValsTo["newEpoch"].get()))
-            self.__model.updateRegStr(eval(self.__updateValsTo["newRegStr"].get()))
+            self.__model.updateEpoch(optimiserVals[0])
+            self.__model.updateRegStr(optimiserVals[1])
 
-            self.__model.configOptimizer(optimiserVals[0], optimiserVals[1], optimiserVals[2], optimiserVals[3])
+            self.__model.configOptimizer(optimiserVals[2], optimiserVals[3], optimiserVals[4])
 
             print("Retraining model...")
-            self.__restartModel()
+            self.__model, self.__PreProcessor = self.__setup()
         
         except ValueError:
             print("Invalid input for epochs or regularization strength. Please enter valid values.")
@@ -105,21 +99,6 @@ class GUI:
                 print(f"Unstable Model. Retraining...\n")
             else:
                 return model, PreProcessor
-            
-    def __restartModel(self):
-        for x in range(8):
-            PreProcessor = PreProcess(New=True)
-            TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-
-            self.__model.train(TrainX, TrainY)
-            self.__model.test(TestX, TestY)
-            accuracy = self.__model.Accuracy
-    
-            if accuracy <= 0.7:
-                print(f"Unstable Model. Retraining...\n")
-
-        print("Too many attempts... Aborting Application.")
-        self.__exit()
 
     def __LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.notebook)
@@ -171,16 +150,17 @@ def main():
     myGUI = GUI()
     myGUI.root.mainloop()
 
-main()
-
 def test():
     PreProcessor = PreProcess(New=True)
     TrainX, TrainY, TestX, TestY = PreProcessor.getData()
 
-    model = Model(Epochs=20)
+    model = Model()
     model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
 
     model.train(TrainX, TrainY, canGraph=True)
     model.test(TestX, TestY, showTests=True)
 
+
+
+main()
 #test()

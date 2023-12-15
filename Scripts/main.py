@@ -3,7 +3,7 @@ from Layer import *
 from DataHandle import PreProcess
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, simpledialog
 
 class GUI:
     def __init__(self):
@@ -22,7 +22,6 @@ class GUI:
         self._resultVal = tk.StringVar(value="...")
         self._saveStatusVal = tk.StringVar(value="Unsaved")
         self._fileName = tk.StringVar()
-        self._loadFileName = tk.StringVar(value="default")
 
         self._CreateTabs()
 
@@ -36,6 +35,7 @@ class GUI:
         file_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Load Default Model", command=self.__loadDefault)
+        file_menu.add_command(label="Load other Model", command=self._loadModel)
         file_menu.add_command(label="Generate New Model", command=self.__newModel)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.__exit)
@@ -186,8 +186,14 @@ class GUI:
             self._saveStatusVal.set(status)
             self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
+    def _loadModel(self):
+        modelName = simpledialog.askstring("Load Another Model", "Enter model name:")
+        filePath = f"DataSet\\Models\\{modelName}.txt"
+        scalingData = self.__model.loadModel(filePath)
+        self.__PreProcessor.updateScalingVals(scalingData)
+
     def __loadDefault(self):
-        filePath = f"DataSet\\Models\\{self._loadFileName.get()}.txt"
+        filePath = f"DataSet\\Models\\default.txt"
         scalingData = self.__model.loadModel(filePath)
         self.__PreProcessor.updateScalingVals(scalingData)
 
@@ -198,33 +204,4 @@ def main():
     myGUI = GUI()
     myGUI.root.mainloop()
 
-def test():
-    PreProcessor = PreProcess()
-    PreProcessor.newDataset()
-    TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-
-    model = Model()
-    model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
-
-    model.loadModel()
-
-    while not True:
-
-        model.train(TrainX, TrainY)
-        model.test(TestX, TestY)
-        acc = model.Accuracy
-
-        if acc <= 0.7:
-            print(f"Retrain Model.")
-            model.resetLayers()
-            PreProcessor.newDataset()
-            TrainX, TrainY, TestX, TestY = PreProcessor.getData()
-        else:
-            break
-
-    #model.saveModel(PreProcessor.ScalingData)
-
-
-
 main()
-#test()

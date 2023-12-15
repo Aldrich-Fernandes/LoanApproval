@@ -7,7 +7,9 @@ class PreProcess:
         self.__TrainX = []
         self.__TrainY = []
         self.__featuresToRemove = ["Loan_ID", "Self_Employed", "Gender", "Education", "Married", "Dependents"]
-        self.CategoricalFeatureKeys = { "Y": 1., "Urban": 1., "N": 0., "Semiurban": 0., "Rural": 2. }
+        self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
+                                    "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
+                                    "Rural": 2., "3+": 2.}
         self.ScalingData = {'means': [], 'stds': []}                                # To be used when taking on user data
 
     def newDataset(self): # Generates a new random dataset
@@ -110,18 +112,23 @@ class PreProcess:
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
         return self.__TrainX, self.__TrainY, TestX, TestY
 
+    def updateScalingVals(self, data):
+        self.ScalingData = data
 
     def encode(self, UserData):
         # Encodes user data by standardizing and mapping categorical values
-        for x, val in enumerate(UserData):
-            if val in self.CategoricalFeatureKeys.keys():
-                val = float(self.CategoricalFeatureKeys[val])
-            else:
-                val = float(val)
+        try:
+            for x, val in enumerate(UserData):
+                if val in self.CategoricalFeatureKeys.keys():
+                    val = float(self.CategoricalFeatureKeys[val])
+                else:
+                    val = float(val)
 
-            UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
+                UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
 
-        return UserData
+            return UserData
+        except Exception as e:
+            print(e)
 
 class DataMethod:
     @staticmethod

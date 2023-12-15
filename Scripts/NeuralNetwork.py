@@ -20,6 +20,10 @@ class Model:
     def add(self, layer):
         self.__Layers.append(layer)
 
+    def resetLayers(self):
+        for layer in self.__Layers:
+            layer.SetWeightsAndBiases()
+
     def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
         self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum)
 
@@ -103,7 +107,7 @@ class Model:
                 print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")
         
         self.Accuracy = sum([1 for x,y in zip(result, TestY) if round(x)==y]) / len(result)
-        print(f"\nTest Accuracy: {self.Accuracy}")
+        #print(f"\nTest Accuracy: {self.Accuracy}")
 
     def Predict(self, UserData):                                        # Passes Userdata through model
         self.Result = round(self.__forward(UserData)[0], 4)
@@ -127,8 +131,33 @@ class Model:
     def __DisplayResults(self, iteration, loss, accuracy, learningRate):
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
-    def saveModel(self):  # save epochs regularisationStrenght, number of layers and thier weighs and biases
-        pass
+    def saveModel(self, filePath, ScalingData):
+        try:
+            # Save preprocess ting needed for encoding
+            file = open(filePath,  "w")
+            file.write(f"{ScalingData}\n")
+            for layer in self.__Layers:
+                weights, biases = layer.getWeightsAndBiases()
+                file.write(f"{weights}\n")
+                file.write(f"{biases}\n")
+            return "Model Saved Successfully."
+        except FileExistsError:
+            return "Filename already used. Try again."
+
 
     def loadModel(self): # if 1 parameters: load data from file --- multiple parameters: from adjusted data
-        pass
+        try:
+            fileName = f"DataSet\\Models\\{str(input("Load model: "))}.txt"
+            file = open(fileName,  "r")
+            scalingData = eval(file.readline().rstrip())
+            for layer in self.__Layers:
+                weights = eval(file.readline().rstrip())
+                biases = eval(file.readline().rstrip())
+
+                if len(layer.getWeightsAndBiases()[1]) != len(biases):
+                    print("Layers dont match... cant load.")
+                else:
+                    layer.setWeightsAndBiases(weights, biases)
+        except FileNotFoundError:
+            print("File not found. Try again.")
+            self.loadModel()

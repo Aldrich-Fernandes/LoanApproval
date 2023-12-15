@@ -8,9 +8,8 @@ from tkinter import ttk
 class GUI:
     def __init__(self):
         self.__model = Model()
+        self.__model.add(Layer(6, 1, "Sigmoid"))
         self.__PreProcessor = PreProcess()
-
-        self.__newModel()
 
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.__exit)
@@ -19,22 +18,37 @@ class GUI:
 
         self.__Font = ('Arial', 14)
         self.__training = False
+
         self._resultVal = tk.StringVar(value="...")
         self._saveStatusVal = tk.StringVar(value="Unsaved")
         self._fileName = tk.StringVar()
+        self._loadFileName = tk.StringVar(value="default")
 
+        self._CreateTabs()
+
+        self.__loadDefault()
+
+    def _LoadMenu(self):
+        # Create a menu
+        menu_bar = tk.Menu(self.root)
+        self.root.config(menu=menu_bar)
+
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Load Default Model", command=self.__loadDefault)
+        file_menu.add_command(label="Generate New Model", command=self.__newModel)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.__exit)
+
+    def _CreateTabs(self):
         # Create a notebook (tabs container)
         self.__notebook = ttk.Notebook(self.root)
         self.__notebook.pack(expand=True, fill='both')
 
         # Create tabs
+        self._LoadMenu()
         self._LoadPredictionGUI()
         self._LoadHyperparametersTab()
-
-        # save a old model and by default load that data so that a new model doesnt need to be trained. They can retrain a model using the hyperparameter tab.
-        # If they have pressed the retrain button, then a save model button will pop up which wil allow so. 
-        # they can also choose to load a model in a dropdown menu which aslo has a exit button.
-
 
     def _LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
@@ -74,7 +88,6 @@ class GUI:
         try:
 
             optimiserVals = [item.get() for item in list(self._updateValsTo.values())]
-            input(optimiserVals)
             
             # Apply hyperparameters to the model
             self.__model.updateEpoch(optimiserVals[0])
@@ -83,49 +96,11 @@ class GUI:
             self.__model.configOptimizer(optimiserVals[2], optimiserVals[3], optimiserVals[4])
 
             print("Retraining model...")
-            self.__model.resetLayers()
-
-            acc = 0
-            while acc <= 0.7:
-                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
-                self.__model.resetLayers()
-                self.__model.train(TrainX, TrainY)
-                self.__model.test(TestX, TestY)
-                accuracy = self.__model.Accuracy
-                
-                self.__training = True
+            
+            self.__newModel()
 
         except ValueError:
             print("Invalid input for epochs or regularization strength. Please enter valid values.")
-
-    def __exit(self):
-        self.root.destroy()
-
-    def __newModel(self):
-
-        self.__PreProcessor.newDataset()
-        TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
-
-        self.__model.add(Layer(len(TrainX[0]), 1, "Sigmoid"))
-
-        while True:
-
-            self.__model.train(TrainX, TrainY)
-            self.__model.test(TestX, TestY)
-            accuracy = self.__model.Accuracy
-    
-            if accuracy <= 0.7:
-                print(f"Unstable Model - Accuracy: {accuracy}. \nRetraining...\n")
-                self.__model.resetLayers()
-                self.__PreProcessor.newDataset()
-                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
-            else:
-                print(f"Model Successful - Accuracy: {accuracy}")
-                self.__training = False
-                break
-
-    def __loadDefault(self):
-        pass
 
     def _LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.__notebook)
@@ -160,14 +135,6 @@ class GUI:
         tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
         tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(row=len(DataToGet)+3, column=2, padx=5, pady=10)
 
-    def _saveModel(self):
-        if self._fileName.get() != "":
-            filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
-            status = self.__model.saveModel(filePath, self.__PreProcessor.ScalingData)
-            self._saveStatusVal.set(status)
-            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
-
-
     def __ProcessUserData(self):
         if not self.__training:
             try:
@@ -181,15 +148,51 @@ class GUI:
 
                     result = round(self.__model.Result, 4)
                     
-                    self._resultVal.set(f"You have a {result*100}% chance of being Approved")
-                    self._ResultLabel.config(textvariable=self._resultVal)
+                    status = f"You have a {result*100}% chance of being Approved"
                 else:
-                    print(self.CollectedData)
-                    print("Missing or incorrect data.")
+                    status = "Missing or incorrect data."
             except ValueError:
-                print(f"Error in userdata")
+                status = "Error in userdata"
         else:
-            print("Model is training. Please wait.")
+            status = "Model is training. Please wait."
+
+        self._resultVal.set(status)
+        self._ResultLabel.config(textvariable=self._resultVal)
+
+    def __newModel(self):
+        self.__PreProcessor.newDataset()
+        TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+
+        while True:
+
+            self.__model.train(TrainX, TrainY)
+            self.__model.test(TestX, TestY)
+            accuracy = self.__model.Accuracy
+    
+            if accuracy <= 0.7:
+                print(f"Unstable Model - Accuracy: {accuracy}. \nRetraining...\n")
+                self.__model.resetLayers()
+                self.__PreProcessor.newDataset()
+                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+            else:
+                print(f"Model Successful - Accuracy: {accuracy}")
+                self.__training = False
+                break
+
+    def _saveModel(self):
+        if self._fileName.get() != "":
+            filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
+            status = self.__model.saveModel(filePath, self.__PreProcessor.ScalingData)
+            self._saveStatusVal.set(status)
+            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+
+    def __loadDefault(self):
+        filePath = f"DataSet\\Models\\{self._loadFileName.get()}.txt"
+        scalingData = self.__model.loadModel(filePath)
+        self.__PreProcessor.updateScalingVals(scalingData)
+
+    def __exit(self):
+        self.root.destroy()
 
 def main():
     myGUI = GUI()

@@ -5,26 +5,32 @@ from random import gauss
 
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrenght=0.001):
+        self._NoOfInputs = NoOfInputs
+        self._NoOfNeurons = NoOfNeurons
+
+        # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
+        self.__regularisationStrenght = regularisationStrenght
 
         # Initilise Activation
         if activation == "Sigmoid":
             self.activation = Sigmoid()
-            Numerator = 1
+            self.__Numerator = 1
         elif activation == "ReLU":
             self.activation = ReLU()
-            Numerator = 2
+            self.__Numerator = 2
 
+        self.SetWeightsAndBiases()
+
+    def SetWeightsAndBiases(self):
         # Xavier/Glorot weight initialization
-        scale = sqrt(Numerator / (NoOfInputs+NoOfNeurons))
-        self.__weights = [[gauss(0, scale) for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.__biases = [0.0 for x in range(NoOfNeurons)]
+        scale = sqrt(self.__Numerator / (self._NoOfInputs+self._NoOfNeurons))
+        self.__weights = [[gauss(0, scale) for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)]
+        self.__biases = [0.0 for x in range(self._NoOfNeurons)]
 
         # Velocity for use with Optimizer momentum
-        self.__weightsVelocity = [[1e-3 for _ in range(NoOfNeurons)] for _ in range(NoOfInputs)]
-        self.__biasesVelocity = [1e-3 for _ in range(NoOfNeurons)]
+        self.__weightsVelocity = [[1e-3 for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)]
+        self.__biasesVelocity = [1e-3 for _ in range(self._NoOfNeurons)]
 
-        # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
-        self.__regularisationStrenght = regularisationStrenght
 
     def forward(self, inputs): # Formula = sum(weights x input) + bias
         self.inputs = inputs.copy()

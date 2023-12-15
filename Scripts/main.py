@@ -190,7 +190,11 @@ class GUI:
         modelName = simpledialog.askstring("Load Another Model", "Enter model name:")
         filePath = f"DataSet\\Models\\{modelName}.txt"
         scalingData = self.__model.loadModel(filePath)
-        self.__PreProcessor.updateScalingVals(scalingData)
+        if scalingData == -1:
+            print("File not found. Loading default...")
+            self.__loadDefault()
+        else:
+            self.__PreProcessor.updateScalingVals(scalingData)
 
     def __loadDefault(self):
         filePath = f"DataSet\\Models\\default.txt"

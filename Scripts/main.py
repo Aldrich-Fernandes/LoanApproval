@@ -86,21 +86,17 @@ class GUI:
 
     def __updateHyperparameters(self):
         try:
-
             optimiserVals = [item.get() for item in list(self._updateValsTo.values())]
             
             # Apply hyperparameters to the model
             self.__model.updateEpoch(optimiserVals[0])
             self.__model.updateRegStr(optimiserVals[1])
-
             self.__model.configOptimizer(optimiserVals[2], optimiserVals[3], optimiserVals[4])
 
             print("Retraining model...")
-            
             self.__newModel()
 
-        except ValueError:
-            print("Invalid input for epochs or regularization strength. Please enter valid values.")
+        except ValueError: print("Invalid input for epochs or regularization strength. Please enter valid values.")
 
     def _LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.__notebook)
@@ -114,7 +110,6 @@ class GUI:
                      'Property area: ': ["Urban", "Semiurban", "Rural"]}
         
         self.UserData = [tk.StringVar() for _ in range(len(DataToGet.keys()))]
-
         for index, (key, data) in enumerate(DataToGet.items()):
             tk.Label(predictFrame, text=key, font=self.__Font).grid(row=index, column=0, padx=5, pady=5)
 
@@ -128,7 +123,6 @@ class GUI:
 
         self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
         self._ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
-
         self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
         self._saveStatusLabel.grid(row=len(DataToGet)+4, column=0, padx=5, pady=5)
 

@@ -45,6 +45,7 @@ class GUI:
         self.__notebook = ttk.Notebook(self.root)
         self.__notebook.pack(expand=True, fill='both')
 
+
         # Create tabs
         self._LoadMenu()
         self._LoadPredictionGUI()
@@ -64,25 +65,43 @@ class GUI:
         # Add widgets for adjusting hyperparameters
 
         # Model Parameters
-        tk.Label(hyperparameterFrame, text="Epochs:", font=self.__Font).grid(row=0, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newEpoch"], font=self.__Font).grid(row=0, column=1, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="Epochs:", font=self.__Font).grid(
+            row=0, column=0, padx=10, pady=5)
+        
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newEpoch"], font=self.__Font).grid(
+            row=0, column=1, padx=10, pady=5)
 
-        tk.Label(hyperparameterFrame, text="Regularization Strength:", font=self.__Font).grid(row=1, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newRegStr"], font=self.__Font).grid(row=1, column=1, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="Regularisation Strength:", font=self.__Font).grid(
+            row=1, column=0, padx=10, pady=5)
+        
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["newRegStr"], font=self.__Font).grid(
+            row=1, column=1, padx=10, pady=5)
 
         # Optimiser Parameters
-        tk.Label(hyperparameterFrame, text="OPTIMISER PARAMETERS", font=self.__Font).grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="OPTIMISER PARAMETERS", font=self.__Font).grid(
+            row=3, column=0, columnspan=2, padx=10, pady=5)
 
-        tk.Label(hyperparameterFrame, text="Initial Learning Rate:", font=self.__Font).grid(row=4, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["initialLearningRate"], font=self.__Font).grid(row=4, column=1, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="Initial Learning Rate:", font=self.__Font).grid(
+            row=4, column=0, padx=10, pady=5)
+        
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["initialLearningRate"], font=self.__Font).grid(
+            row=4, column=1, padx=10, pady=5)
 
-        tk.Label(hyperparameterFrame, text="Decay:", font=self.__Font).grid(row=5, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["decay"], font=self.__Font).grid(row=5, column=1, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="Decay:", font=self.__Font).grid(
+            row=5, column=0, padx=10, pady=5)
+        
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["decay"], font=self.__Font).grid(
+            row=5, column=1, padx=10, pady=5)
 
-        tk.Label(hyperparameterFrame, text="Momentum:", font=self.__Font).grid(row=6, column=0, padx=10, pady=5)
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["momentum"], font=self.__Font).grid(row=6, column=1, padx=10, pady=5)
+        tk.Label(hyperparameterFrame, text="Momentum:", font=self.__Font).grid(
+            row=6, column=0, padx=10, pady=5)
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["momentum"], font=self.__Font).grid(
+            row=6, column=1, padx=10, pady=5)
 
-        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(row=8, column=0, columnspan=3, pady=10)
+
+        # Retrain Button
+        tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(
+            row=8, column=0, columnspan=3, pady=10)
 
     def __updateHyperparameters(self):
         try:
@@ -96,7 +115,7 @@ class GUI:
             print("Retraining model...")
             self.__newModel()
 
-        except ValueError: print("Invalid input for epochs or regularization strength. Please enter valid values.")
+        except ValueError: print("Invalid input for epochs or regularisation strength. Please enter valid values.")
 
     def _LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.__notebook)
@@ -115,19 +134,24 @@ class GUI:
 
             if type(data) == list:
                 for col, option in enumerate(data):
-                    tk.Radiobutton(predictFrame, text=option, value=option, variable=self.UserData[index], font=self.__Font).grid(row=index, column=col + 1, padx=5, pady=5)
+                    tk.Radiobutton(predictFrame, text=option, value=option, variable=self.UserData[index], font=self.__Font).grid(
+                        row=index, column=col + 1, padx=5, pady=5)
             else:
-                tk.Entry(predictFrame, textvariable=self.UserData[index], font=self.__Font).grid(row=index, column=1, padx=5, pady=5)
+                tk.Entry(predictFrame, textvariable=self.UserData[index], font=self.__Font).grid(
+                    row=index, column=1, padx=5, pady=5)
 
-        tk.Button(predictFrame, text="Enter", font=self.__Font, command=self.__ProcessUserData).grid(row=len(DataToGet), column=0, columnspan=2, pady=10)
+        tk.Button(predictFrame, text="Enter", font=self.__Font, command=self.__ProcessUserData).grid(
+            row=len(DataToGet), column=0, columnspan=2, pady=10)
 
         self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
         self._ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
         self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
         self._saveStatusLabel.grid(row=len(DataToGet)+4, column=0, padx=5, pady=5)
 
-        tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
-        tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(row=len(DataToGet)+3, column=2, padx=5, pady=10)
+        tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(
+            row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
+        tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(
+            row=len(DataToGet)+3, column=2, padx=5, pady=10)
 
     def __ProcessUserData(self):
         if not self.__training:

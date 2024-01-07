@@ -102,18 +102,15 @@ class OptimiserSGD:
         if self.__momentum != 0:
             weightsVelocity, biasesVelocity = layer.getVelocities()
 
-            # Adjust Weights    |    layer.weightsVelocity = self.momentum * layer.weightsVelocity - self.activeLearningRate * layer.dweights
-
+            # Velocity = momentum * Velocity - activeLearningRate * dweights
             weightsVelocity = [[a - b for a, b in zip(velocityRow, dweightsRow)]
                                for velocityRow, dweightsRow in zip(DM.Multiply(self.__momentum, weightsVelocity),
                                                                   AdjustedDWeight)]
 
-            # Adjust Biases    |    layer.biasesVelocity = self.momentum * layer.biasesVelocity - self.activeLearningRate * layer.dbiases
+            # Velocity = momentum * Velocity - activeLearningRate * dbiases
             biasesVelocity = [a - b for a, b in zip(DM.Multiply(self.__momentum, biasesVelocity), AdjustedDBiases)]
 
             layer.setVelocities(weightsVelocity, biasesVelocity)
-
-            # Final Updates
 
             weights = [[a + b for a, b in zip(weights[x], weightsVelocity[x])] for x in range(len(weights))]
             biases = [a + b for a, b in zip(biases, biasesVelocity)]

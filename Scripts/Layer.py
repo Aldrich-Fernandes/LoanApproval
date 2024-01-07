@@ -31,8 +31,8 @@ class Layer:
         self.__weightsVelocity = [[1e-3 for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)]
         self.__biasesVelocity = [1e-3 for _ in range(self._NoOfNeurons)]
 
-
-    def forward(self, inputs): # Formula = sum(weights x input) + bias
+    # Formula = sum(weights x input) + bias
+    def forward(self, inputs):
         self.inputs = inputs.copy()
 
         self.output = [[a+b for a,b in zip(sample, self.__biases)] for sample in DM.DotProduct(inputs, self.__weights)]        
@@ -43,15 +43,16 @@ class Layer:
         self.activation.backward(dvalues)
         dvalues = self.activation.dinputs.copy()
 
-        self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights))         # Layer's dvalues
+        self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights)) # Layer's dvalues
 
-        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)           # used by optimizer to adjust weights
+        self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)   # used by optimizer to adjust weights
 
-        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]                      # used by optimizer to adjist biases
+        self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]              # used by optimizer to adjist biases
 
-        if self.__regularisationStrenght != 0:                                        # adds penalty
+        if self.__regularisationStrenght != 0:                              # adds penalty
             DweightsRegularisation = DM.Multiply(self.__regularisationStrenght, self.__weights)
-            self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] for x in range(len(self.dweights))]
+            self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] 
+                             for x in range(len(self.dweights))]
 
     # Getters and Setters
     def getVelocities(self):

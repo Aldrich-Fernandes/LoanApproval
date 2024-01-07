@@ -10,36 +10,37 @@ class PreProcess:
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}
-        self.ScalingData = {'means': [], 'stds': []}                                # To be used when taking on user data
+        self.ScalingData = {'means': [], 'stds': []}
 
-    def newDataset(self): # Generates a new random dataset
+    # Generates a new random dataset
+    def newDataset(self):
         # Extract data
         Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
         Dataset = self.__RemoveFeatures(Dataset)
-        Dataset = self.__AdjustSkew(Dataset)                                          # Balances approved and rejected data 
+        Dataset = self.__AdjustSkew(Dataset) 
 
         # Feature Engineering
 
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
-        self.__ConvertToInteger()                                                     # Converts Categorical data (eg. male/female) into numerical
+        self.__ConvertToInteger()
 
         self.__TrainY = self.FeatureColumns.pop()
 
-        self.__Standardisation()                                                      # Scales all data to avoid large data from skewing the processes
+        self.__Standardisation()
 
         self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
 
         self.__TrainX, self.__TrainY = ShuffleData(self.__TrainX, self.__TrainY)
 
+    # Removes specified features from the dataset
     def __RemoveFeatures(self, Dataset):
-        # Removes specified features from the dataset
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = [row[1:] for row in features if row[0] not in self.__featuresToRemove]
         return DataMethod.Transpose(filteredFeatures)
 
+    # Adjusts the skewness of the dataset by balancing the number of 'Y' and 'N' labels
     def __AdjustSkew(self, dataset):
-        # Adjusts the skewness of the dataset by balancing the number of 'Y' and 'N' labels
         Ones = 0
         Zeros = 0
         NewData = []
@@ -55,9 +56,9 @@ class PreProcess:
                 NewData.append(dataset.pop(index))
                 Zeros += 1
         return NewData
-
+    
+    # Replaces missing values in each column with the most common or mean value
     def __ReplaceMissingVals(self):
-        # Replaces missing values in each column with the most common or mean value
         Numbers = '1234567890'
         for Column in self.FeatureColumns:
             TestElement = ""
@@ -74,8 +75,8 @@ class PreProcess:
                 if element == "":
                     Column[index] = ReplacementData
 
+    # Converts categorical values to integers using a predefined mapping
     def __ConvertToInteger(self):
-        # Converts categorical values to integers using a predefined mapping
         for ColumnIndex, features in enumerate(self.FeatureColumns):
             for ElementIndex, element in enumerate(features):
                 try:
@@ -85,8 +86,8 @@ class PreProcess:
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
 
+    # Standardizes the data by subtracting the mean and dividing by the standard deviation for each feature
     def __Standardisation(self):
-        # Standardizes the data by subtracting the mean and dividing by the standard deviation for each feature
         for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature]) / len(feature)) - mean**2) ** 0.5
@@ -100,8 +101,8 @@ class PreProcess:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
 
+    # Splits the dataset into training and test sets
     def getData(self, split=0.2):
-        # Splits the dataset into training and test sets
         NumOfTrainData = round(len(self.__TrainX) * split)
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
@@ -110,8 +111,8 @@ class PreProcess:
     def updateScalingVals(self, data):
         self.ScalingData = data
 
+    # Encodes user data by standardizing and mapping categorical values
     def encode(self, UserData):
-        # Encodes user data by standardizing and mapping categorical values
         try:
             for x, val in enumerate(UserData):
                 if val in self.CategoricalFeatureKeys.keys():
@@ -166,21 +167,25 @@ class DataMethod:
         return output
     @staticmethod
     def Multiply(arr1, arr2): # dimensions of arr1 Must be <= dimensions of arr2
-        if not isinstance(arr1, list): # Ensures dimentions are atleast 1 dimensional
-            if isinstance(arr2[0], list): # uses inside lenght of a row
-                arr1 = [float(arr1) for _ in range(len(arr2[0]))]
-            else:
-                arr1 = [float(arr1) for _ in range(len(arr2))]
+        try:
+            if not isinstance(arr1, list): # Ensures dimentions are atleast 1 dimensional
+                if isinstance(arr2[0], list): # uses inside lenght of a row
+                    arr1 = [float(arr1) for _ in range(len(arr2[0]))]
+                else:
+                    arr1 = [float(arr1) for _ in range(len(arr2))]
 
-        if isinstance(arr2[0], list):  # Check if arr2 is a 2D array
-            if isinstance(arr1[0], list):  # For 2d x 2d
-                return [DataMethod.Multiply(row1, row2) for row1, row2 in zip(arr1, arr2)]
-            else: # For 1d x 2d
-                return [DataMethod.Multiply(arr1, row) for row in arr2]
-        else: # For 1d x 1d
-            return [a * b for a, b in zip(arr1, arr2)]
+            if isinstance(arr2[0], list):  # Check if arr2 is a 2D array
+                if isinstance(arr1[0], list):  # For 2d x 2d
+                    return [DataMethod.Multiply(row1, row2) for row1, row2 in zip(arr1, arr2)]
+                else: # For 1d x 2d
+                    return [DataMethod.Multiply(arr1, row) for row in arr2]
+            else: # For 1d x 1d
+                return [a * b for a, b in zip(arr1, arr2)]
+        except Exception as ex:
+            print(ex)
 
-def ShuffleData(X, Y): # shuffles two lists while maintaining thier corresspronding 
+# shuffles two lists while maintaining thier corresspronding
+def ShuffleData(X, Y): 
     a = list(zip(X, Y))
     random.shuffle(a)
     X, Y = zip(*a)

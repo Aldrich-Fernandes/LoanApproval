@@ -27,29 +27,28 @@ class GUI:
 
         self.__loadDefault()
 
-    def _LoadMenu(self):
-        # Create a menu
-        menu_bar = tk.Menu(self.root)
-        self.root.config(menu=menu_bar)
-
-        file_menu = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Load Default Model", command=self.__loadDefault)
-        file_menu.add_command(label="Load other Model", command=self._loadModel)
-        file_menu.add_command(label="Generate New Model", command=self.__newModel)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.__exit)
-
     def _CreateTabs(self):
         # Create a notebook (tabs container)
         self.__notebook = ttk.Notebook(self.root)
         self.__notebook.pack(expand=True, fill='both')
 
-
         # Create tabs
         self._LoadMenu()
         self._LoadPredictionGUI()
         self._LoadHyperparametersTab()
+
+    def _LoadMenu(self):
+        # Create a menu
+        menuBar = tk.Menu(self.root)
+        self.root.config(menu=menuBar)
+
+        Menu = tk.Menu(menuBar, tearoff=0)
+        menuBar.add_cascade(label="File", menu=Menu)
+        Menu.add_command(label="Load Default Model", command=self.__loadDefault)
+        Menu.add_command(label="Load other Model", command=self._loadModel)
+        Menu.add_command(label="Generate New Model", command=self.__newModel)
+        Menu.add_separator()
+        Menu.add_command(label="Exit", command=self.__exit)
 
     def _LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
@@ -98,7 +97,6 @@ class GUI:
         tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["momentum"], font=self.__Font).grid(
             row=6, column=1, padx=10, pady=5)
 
-
         # Retrain Button
         tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(
             row=8, column=0, columnspan=3, pady=10)
@@ -144,14 +142,14 @@ class GUI:
             row=len(DataToGet), column=0, columnspan=2, pady=10)
 
         self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
-        self._ResultLabel.grid(row=len(DataToGet) + 1, column=0, columnspan=2, pady=10)
+        self._ResultLabel.grid(row=len(DataToGet) + 1, column=1, columnspan=2, pady=10)
         self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
-        self._saveStatusLabel.grid(row=len(DataToGet)+4, column=0, padx=5, pady=5)
+        self._saveStatusLabel.grid(row=len(DataToGet)+4, column=1,columnspan=2, pady=10)
 
         tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(
             row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
         tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(
-            row=len(DataToGet)+3, column=2, padx=5, pady=10)
+            row=len(DataToGet)+3, column=2,columnspan=2, pady=10)
 
     def __ProcessUserData(self):
         if not self.__training:

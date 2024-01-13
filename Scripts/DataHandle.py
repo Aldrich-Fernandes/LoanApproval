@@ -91,7 +91,7 @@ class PreProcess:
                 input(self.FeatureColumns[ind])
 
     # Splits the dataset into training and test sets
-    def getData(self, split=0.2):
+    def getData(self, split=0.2): # default: 80-20 split
         NumOfTrainData = round(len(self.__TrainX) * split)
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
@@ -114,7 +114,6 @@ class PreProcess:
             return UserData
         except Exception as e:
             print(e)
-
 
 '''
 Commonly used processes by other programs
@@ -156,17 +155,17 @@ class DataMethod:
         arr2Shape = len(arr2), len(arr2[0])
 
         if arr1Shape[1] != arr2Shape[0]:
-            raise ValueError(f"Matrix dimensions are not compatible for dot product: {arr1Shape} and {arr2Shape}.")
+            raise ValueError(f"Matrix dimensions are not compatible: {arr1Shape} and {arr2Shape}.")
 
         output = [[sum(a * b for a, b in zip(row, col)) for col in zip(*arr2)] for row in arr1]
 
         return output
     
     @staticmethod
-    def Multiply(arr1, arr2): # Limitastion: dimensions of arr1 Must be <= dimensions of arr2
+    def Multiply(arr1, arr2): # Limitation: dimensions of arr1 Must be <= dimensions of arr2
         try:
-            if not isinstance(arr1, list): # Ensures it is atleast 1 dimensional
-                if isinstance(arr2[0], list): # uses inside lenght of a row
+            if not isinstance(arr1, list): # Ensures it is at least 1 dimensional
+                if isinstance(arr2[0], list): # uses inside length of a row
                     arr1 = [float(arr1) for _ in range(len(arr2[0]))]
                 else:
                     arr1 = [float(arr1) for _ in range(len(arr2))]
@@ -181,7 +180,7 @@ class DataMethod:
         except Exception as ex:
             print(ex)
 
-# shuffles two lists while maintaining thier corresspronding
+# shuffles two lists while maintaining thier corresspronding element
 def ShuffleData(X, Y): 
     a = list(zip(X, Y))
     random.shuffle(a)

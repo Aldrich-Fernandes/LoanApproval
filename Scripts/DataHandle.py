@@ -1,11 +1,17 @@
 import csv
 import random
 
+'''
+Raw Data cannot be processed by the model. Therefore both training and userdata have to be adjusted prior to 
+training or prediction
+'''
 class PreProcess:
     def __init__(self):
         # Initial Data Holders
         self.__TrainX = []
         self.__TrainY = []
+
+        # Data specific to the training data used
         self.__featuresToRemove = ["Loan_ID", "Self_Employed", "Gender", "Education", "Married", "Dependents"]
         self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
@@ -14,12 +20,12 @@ class PreProcess:
 
     # Generates a new random dataset
     def newDataset(self):
-        # Extract data
-        Dataset = DataMethod.CsvToArray(r"DataSet/HomeLoanTrain.csv")
+        # Extract data from file and selecting valid entires/features
+        Dataset = DataMethod.CsvToArray(r"DataSet//HomeLoanTrain.csv")
         Dataset = self.__RemoveFeatures(Dataset)
         Dataset = self.__AdjustSkew(Dataset) 
 
-        # Feature Engineering
+        # Feature Engineering - Making data usable for the model
 
         self.FeatureColumns = DataMethod.Transpose(Dataset)
 
@@ -33,18 +39,18 @@ class PreProcess:
 
         self.__TrainX, self.__TrainY = ShuffleData(self.__TrainX, self.__TrainY)
 
-    # Removes specified features from the dataset
+    # Removes specified features (Attribute) from the dataset
     def __RemoveFeatures(self, Dataset):
         features = DataMethod.Transpose(Dataset)
         filteredFeatures = [row[1:] for row in features if row[0] not in self.__featuresToRemove]
         return DataMethod.Transpose(filteredFeatures)
 
-    # Adjusts the skewness of the dataset by balancing the number of 'Y' and 'N' labels
+    # Fixes skew of the dataset by balancing the number of 'Y' and 'N' labels
     def __AdjustSkew(self, dataset):
         Ones = 0
         Zeros = 0
         NewData = []
-        size = 250
+        size = 250      # Number of entries to utilise
 
         while len(NewData) != size:
             index = random.randint(0, len(dataset) - 1)
@@ -56,37 +62,20 @@ class PreProcess:
                 NewData.append(dataset.pop(index))
                 Zeros += 1
         return NewData
-    
-    # Replaces missing values in each column with the most common or mean value
-    def __ReplaceMissingVals(self):
-        Numbers = '1234567890'
-        for Column in self.FeatureColumns:
-            TestElement = ""
-            while TestElement == "":
-                TestElement = Column[random.randint(0, len(Column) - 1)]
 
-            if TestElement[0] in Numbers and '3+' not in Column:
-                FloatVals = [float(x) for x in Column if x != ""]
-                ReplacementData = round(sum(FloatVals) / len(FloatVals))
-            else:
-                ReplacementData = max(set(Column), key=Column.count)
-
-            for index, element in enumerate(Column):
-                if element == "":
-                    Column[index] = ReplacementData
-
-    # Converts categorical values to integers using a predefined mapping
+    # Converts categorical values (such as strings) to integers using a predefined mapping
     def __ConvertToInteger(self):
         for ColumnIndex, features in enumerate(self.FeatureColumns):
             for ElementIndex, element in enumerate(features):
-                try:
+                try:                        # For data that is already numerical
                     self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
-                except ValueError:
+                except ValueError:          # For data that is categorical
                     if element not in self.CategoricalFeatureKeys.keys():
                         self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
                     self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
 
-    # Standardizes the data by subtracting the mean and dividing by the standard deviation for each feature
+    # Z-score normalisation formula: (data - mean) / standard deviation
+    # Improves interpretability and model performance by removing scale difference between features 
     def __Standardisation(self):
         for ind, feature in enumerate(self.FeatureColumns):
             mean = sum(feature) / len(feature)
@@ -111,7 +100,7 @@ class PreProcess:
     def updateScalingVals(self, data):
         self.ScalingData = data
 
-    # Encodes user data by standardizing and mapping categorical values
+    # Encodes user data by standardising and mapping categorical values
     def encode(self, UserData):
         try:
             for x, val in enumerate(UserData):
@@ -126,16 +115,23 @@ class PreProcess:
         except Exception as e:
             print(e)
 
+
+'''
+Commonly used processes by other programs
+'''
 class DataMethod:
     @staticmethod
     def CsvToArray(path): 
         # loads all data ignoring entries with missing data
         table = []
+        count = 0
         with open(path, "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 if '' not in row:
                     table.append(row)
+                else:
+                    count += 1
         file.close()
 
         return table
@@ -165,10 +161,11 @@ class DataMethod:
         output = [[sum(a * b for a, b in zip(row, col)) for col in zip(*arr2)] for row in arr1]
 
         return output
+    
     @staticmethod
-    def Multiply(arr1, arr2): # dimensions of arr1 Must be <= dimensions of arr2
+    def Multiply(arr1, arr2): # Limitastion: dimensions of arr1 Must be <= dimensions of arr2
         try:
-            if not isinstance(arr1, list): # Ensures dimentions are atleast 1 dimensional
+            if not isinstance(arr1, list): # Ensures it is atleast 1 dimensional
                 if isinstance(arr2[0], list): # uses inside lenght of a row
                     arr1 = [float(arr1) for _ in range(len(arr2[0]))]
                 else:

@@ -4,12 +4,12 @@ from math import sqrt
 from random import gauss
 
 class Layer:
-    def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrenght=0.001):
+    def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrength=0.001):
         self._NoOfInputs = NoOfInputs
         self._NoOfNeurons = NoOfNeurons
 
         # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
-        self.__regularisationStrenght = regularisationStrenght
+        self.__regStr = regularisationStrength
 
         # Initilise Activation
         if activation == "Sigmoid":
@@ -19,15 +19,16 @@ class Layer:
             self.activation = ReLU()
             self.__Numerator = 2
 
-        self.SetWeightsAndBiases()
+        self.initialiseNewLayer()
 
-    def SetWeightsAndBiases(self):
+    def initialiseNewLayer(self): # Overloading
         # Xavier/Glorot weight initialization
+        # Creates a dense layer where each neuron is connected to all the prior layer neurons with a small weight
         scale = sqrt(self.__Numerator / (self._NoOfInputs+self._NoOfNeurons))
-        self.__weights = [[gauss(0, scale) for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)]
+        self.__weights = [[gauss(0, scale) for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)] 
         self.__biases = [0.0 for x in range(self._NoOfNeurons)]
 
-        # Velocity for use with Optimizer momentum
+        # Velocity for use with Optimizer momentum - Allows the model to move in one direction (reduces accurcay fluctuations)
         self.__weightsVelocity = [[1e-3 for _ in range(self._NoOfNeurons)] for _ in range(self._NoOfInputs)]
         self.__biasesVelocity = [1e-3 for _ in range(self._NoOfNeurons)]
 
@@ -40,6 +41,8 @@ class Layer:
         self.activation.forward(self.output)
 
     def backward(self, dvalues):
+        # dvalues, dinputs, dweights, dbiases: are gradients show how much it impacted the results
+
         self.activation.backward(dvalues)
         dvalues = self.activation.dinputs.copy()
 
@@ -49,8 +52,9 @@ class Layer:
 
         self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]              # used by optimizer to adjist biases
 
-        if self.__regularisationStrenght != 0:                              # adds penalty
-            DweightsRegularisation = DM.Multiply(self.__regularisationStrenght, self.__weights)
+        # L2 regularisation prevents a single weight from getting to large.
+        if self.__regStr != 0:
+            DweightsRegularisation = DM.Multiply(self.__regStr, self.__weights)
             self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsRegularisation[x])] 
                              for x in range(len(self.dweights))]
 

@@ -28,6 +28,7 @@ class ReLU(Activation): # Rectified Linear Unit
         self.outputs = [[max(0, element) for element in entry]
                         for entry in inputs]
 
+    # if value in inputs was > 0 then gradient = 1
     def backward(self, _):
         self.dinputs = [[1 if element > 0 else 0 for element in sample] for sample in self.inputs] 
 
@@ -56,12 +57,12 @@ improving when training and identifying what is impacting the model and how much
 '''
 class BinaryCrossEntropy:
     def __init__(self, regStr=0.0):
-        self.__sampleLoss = 0.0
-        self.__regLoss = 0.0
+        self.__sampleLoss = 0.0                     # Measure of how far the prediction is from the true value
+        self.__regLoss = 0.0                        # Additional term to sampleLoss to deter large weights
+  
+        self.__regStr = regStr                      # How strongly to penalise the model
 
-        # How strongly to penalise the model  
-        self.__regStr = regStr
-
+    # Calculates how far the predicted values are from the true values
     def forward(self, predictions, TrueVals):
         predictions = clipEdges(predictions)
 
@@ -69,10 +70,11 @@ class BinaryCrossEntropy:
         sampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) 
                       for tVal, pVal in zip(TrueVals, predictions)]
 
-        self.__sampleLoss = sum(sampleLoss) / len(sampleLoss)       # Average of all samples
+        self.__sampleLoss = sum(sampleLoss) / len(sampleLoss)   # Average of all samples
 
-        self.__regLoss = 0                                          # Resets the loss for that epoch
+        self.__regLoss = 0                                      # Resets the loss for that epoch
 
+    # Gradient of what impacted the result the most
     def backward(self, predicted, TrueVals): 
         predicted = clipEdges(predicted)
         
@@ -91,11 +93,12 @@ class BinaryCrossEntropy:
 
             self.__regLoss += 0.5 * self.__regStr * weightSqrSum
 
+    # Returns total loss when called.
     def getLoss(self):
         return self.__sampleLoss + self.__regLoss
 
 '''
-Optimser
+Optimiser
 
 Improve the accuracy of the model.
 
@@ -135,27 +138,31 @@ class OptimiserSGD:
 
         if self.__momentum != 0:
 
-            # Amount to add to the weights and biases to reduce fluctuations in accuracy and loss
+            # Amount to added to the weights and biases to reduce fluctuations in accuracy and loss
             weightVelocityUpdate, biasesVelocityUpdate = layer.getVelocities()
 
             # New weight velocity = momentum * Velocity - activeLearningRate * dweights
-            weightVelocityUpdate = [[a - b for a, b in zip(velocityRow, dweightsRow)]
-                               for velocityRow, dweightsRow in zip(DM.Multiply(self.__momentum, weightVelocityUpdate),
-                                                                  weightUpdate)]
+            weightVelocityUpdate = [[a - b for a, b in zip(velocityRow, dweightsRow)] 
+                                        for velocityRow, dweightsRow in zip(
+                                            DM.Multiply(self.__momentum, weightVelocityUpdate), weightUpdate)]
 
             # New bias velocity = momentum * Velocity - activeLearningRate * dbiases
-            biasesVelocityUpdate = [a - b for a, b in zip(DM.Multiply(self.__momentum, biasesVelocityUpdate), 
-                                                          biasesUpdate)]
+            biasesVelocityUpdate = [a - b for a, b in zip(
+                                        DM.Multiply(self.__momentum, biasesVelocityUpdate), biasesUpdate)]
 
+            # Updates veloites for the layer to be used in the next loop
             layer.setVelocities(weightVelocityUpdate, biasesVelocityUpdate)
 
-            # Final Updates
-            weights = [[a + b for a, b in zip(weights[x], weightVelocityUpdate[x])] for x in range(len(weights))]
+            # Final (optimising )updates to the weights and biases of the layer for this loop
+            weights = [[a + b for a, b in zip(weights[x], weightVelocityUpdate[x])] 
+                       for x in range(len(weights))]
             biases = [a + b for a, b in zip(biases, biasesVelocityUpdate)]
         else:
-            weights = [[a - b for a, b in zip(weights[x], weightUpdate[x])] for x in range(len(weights))]
+            weights = [[a - b for a, b in zip(weights[x], weightUpdate[x])] 
+                       for x in range(len(weights))]
             biases = [a - b for a, b in zip(biases, biasesUpdate)]
 
+#
         layer.setWeightsAndBiases(weights, biases)
 
 # Replaces any 0s or 1s to avoid arithmetic errors

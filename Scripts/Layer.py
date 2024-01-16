@@ -53,7 +53,7 @@ class Layer:
         # Layer's dvalues (gradients) to be passes to the next layer
         self.dinputs = DM.DotProduct(dvalues, DM.Transpose(self.__weights)) 
 
-        # Used by optimizer to adjust weights and biases
+        # Used by Optimiser to adjust weights and biases
         self.dweights = DM.DotProduct(DM.Transpose(self.inputs), dvalues)
         self.dbiases = [sum(x) for x in DM.Transpose(dvalues)]
 

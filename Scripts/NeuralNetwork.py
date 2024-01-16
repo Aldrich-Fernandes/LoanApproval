@@ -6,74 +6,88 @@ import matplotlib.pyplot as plt
 DM = DataMethod()
 
 class Model:
-     # Creates a blank model
-    def __init__(self, Epochs=25, regularisationStrenght=0.001):
+    # Creates a blank model
+    def __init__(self, Epochs=25, regularisationStrength=0.001):
+        # Tracking variables
         self.Accuracy = 0.0
-        self.__regularisationStrenght = regularisationStrenght
-        self.__Epochs = Epochs
+        self.__regStr = regularisationStrength      # How strongly to penelise the model for strong weights
+        self.__Epochs = Epochs                      # How many times the model will see the data
         
+        # Layers
         self.__Layers = []
 
         # For backpass
-        self.__LossFunction = BinaryCrossEntropy(self.__regularisationStrenght)
-        self.__Optimiser = OptimiserSGD()
+        self.__LossFunction = BinaryCrossEntropy(self.__regStr)     # Calcuates the model's performance
+        self.__Optimiser = OptimiserSGD()                           # Improves the model
 
     # Configuration Modules
+        
+    # Adds new layer to the model
     def add(self, layer):
         self.__Layers.append(layer)
 
+    # Resets layer with new, random weights
     def resetLayers(self):
         for layer in self.__Layers:
-            layer.SetWeightsAndBiases()
+            layer.initialiseNewLayer() 
 
-    def configOptimizer(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
+    # Resets Optimiser and update it's hyperparameters
+    def configOptimiser(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
         self.__Optimiser = OptimiserSGD(InitialLearningRate, decay, momentum)
 
+    # Changes epochs for training
     def updateEpoch(self, epoch):
         self.__Epochs = epoch
 
+    # Changes regularisation strenght
     def updateRegStr(self, regStr):
-        self.__regularisationStrenght = regStr
+        self.__regStr = regStr
         self.__LossFunction.updateRegStr(regStr)
 
-    # Forward progragation through layers
+    # Used for forward progragation through layers
     def __forward(self, data):                                     
         for x, layer in enumerate(self.__Layers):
             if x == 0:
                 layer.forward(data)
-            else:
+            else:       # Takes the activated output of the prior layer
                 layer.forward(self.__Layers[x-1].activation.outputs)
 
         return self.__Layers[-1].activation.outputs
 
     # Trains the model based on input data
     def train(self, X, Y, batch=32, show=False, canGraph=False):
+        # Data holders to used when plotting the graph and calculating values
         losses = []
         accuracies = []
         lrs = []
         sampleSize = len(Y)
 
-        # Epochs - How many times the model will see the data
+        # Training loop
         for iteration in range(self.__Epochs):
+            # dataholders for that Epoch (holds output of each batch)
             accHold = []
             lossHold = []
             learningRateHold = []
             
-            ShuffleData(X, Y)                               # Shuffling dataset -  Improves generalisation
+            ShuffleData(X, Y)                        # Shuffling dataset - Improves generalisation
         
-            for i in range(0, sampleSize, batch):           # Using batchs - Reduces overfitting
+            # Using batchs - Reduces overfitting by passing smaller groups of data to the model at a time
+            for i in range(0, sampleSize, batch):
                 xBatch = X[i:i+batch] 
                 yBatch = Y[i:i+batch]
 
                 # Forward Pass
                 result = self.__forward(xBatch)
 
+                # Evaluating the performace of the model 
                 self.__LossFunction.forward(result, yBatch)
                 self.__LossFunction.calcRegularisationLoss(self.__Layers[-1].getWeightsAndBiases()[0])
 
                 accuracy = sum([1 for x,y in zip(result, yBatch) if round(x)==y]) / len(result)
 
                 # Backward Pass 
+
+                # Calculating gradients (explained in Layer and Optimiser files)
                 self.__LossFunction.backward(result, yBatch)
                 
                 for x, layer in enumerate(self.__Layers[::-1]):
@@ -82,10 +96,10 @@ class Model:
                     else:
                         layer.backward(self.__Layers[-x].dinputs)
 
+                # Optimising the layer parameters - changing weights and biases
                 self.__Optimiser.adjustLearningRate(iteration)
                 for layer in self.__Layers:
                     self.__Optimiser.UpdateParameters(layer)
-
 
                 # Tracking variables
                 accHold.append(accuracy)
@@ -96,9 +110,11 @@ class Model:
             losses.append(sum(lossHold) / (len(lossHold)))
             lrs.append(sum(learningRateHold) / (len(learningRateHold)))
 
+            # Output evaluation of training loop
             if show:
                 self.__DisplayResults(iteration, loss=losses[-1], accuracy=accuracies[-1], learningRate=lrs[-1])
         
+        # Visulaises the training outcomes
         if canGraph:
             self.__graph(accuracies, losses, lrs)
             input("Press ENTER to continue")
@@ -117,14 +133,14 @@ class Model:
     def Predict(self, UserData):
         self.Result = round(self.__forward(UserData)[0], 4)
 
-     # Displays obserable data
+    # Displays obserable data - used to intepret issues with the model and manually tune hyperparameters
     def __graph(self, accuracies, losses, lrs, sep=True):
         X = [x for x in range(1, self.__Epochs+1)]
-        if not sep:
+        if not sep:     # All data on same graph
             plt.plot(X, losses, label='Loss')
             plt.plot(X, accuracies, label='Accuracy')
             plt.legend()
-        else:
+        else:           # Different data on seperate graphs
             _, ax = plt.subplots(3, 1, figsize=(10, 8))
             ax[0].plot(X, losses, label='Loss')
             ax[1].plot(X, accuracies, label='Accuracy')
@@ -134,9 +150,11 @@ class Model:
             ax[2].legend()
         plt.show(block=False)
 
+    # Outputs evaluation for that iteration
     def __DisplayResults(self, iteration, loss, accuracy, learningRate):
         print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
 
+    # Saves the model in a txt file
     def saveModel(self, filePath, ScalingData):
         try:
             # Save preprocess ting needed for encoding
@@ -150,9 +168,9 @@ class Model:
         except FileExistsError:
             return "Filename already used. Try again."
 
+    # Loads a model from a txt file 
     def loadModel(self, filePath):
         self.resetLayers()
-        
         try:
             file = open(filePath,  "r")
             scalingData = eval(file.readline().rstrip())

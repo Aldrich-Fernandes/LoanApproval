@@ -116,7 +116,7 @@ class GUI:
             # Apply hyperparameters to the model
             self.__model.updateEpoch(optimiserVals[0])
             self.__model.updateRegStr(optimiserVals[1])
-            self.__model.configOptimizer(optimiserVals[2], optimiserVals[3], optimiserVals[4])
+            self.__model.configOptimiser(optimiserVals[2], optimiserVals[3], optimiserVals[4])
 
             print("Retraining model...")
             self.__newModel()

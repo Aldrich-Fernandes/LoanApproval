@@ -7,7 +7,7 @@ training or prediction
 '''
 class PreProcess:
     def __init__(self):
-        # Initial Data Holders
+        # Initial data holders for training data
         self.__TrainX = []
         self.__TrainY = []
 
@@ -20,7 +20,7 @@ class PreProcess:
 
     # Generates a new random dataset
     def newDataset(self):
-        # Extract data from file and selecting valid entires/features
+        # Extract data from file and selecting valid entries/features
         Dataset = DataMethod.CsvToArray(r"DataSet//HomeLoanTrain.csv")
         Dataset = self.__RemoveFeatures(Dataset)
         Dataset = self.__AdjustSkew(Dataset) 
@@ -47,20 +47,20 @@ class PreProcess:
 
     # Fixes skew of the dataset by balancing the number of 'Y' and 'N' labels
     def __AdjustSkew(self, dataset):
-        Ones = 0
-        Zeros = 0
+        Trues = 0           # No. of approved applications
+        Falses = 0          # No. of unsuccessful applications
         NewData = []
-        size = 250      # Number of entries to utilise
+        size = 250          # Number of entries to utilise
 
         while len(NewData) != size:
             index = random.randint(0, len(dataset) - 1)
             row = dataset[index]
-            if row[-1] == 'Y' and Ones != size // 2:
+            if row[-1] == 'Y' and Trues != size // 2:
                 NewData.append(dataset.pop(index))
-                Ones += 1
-            elif row[-1] == 'N' and Zeros != size // 2:
+                Trues += 1
+            elif row[-1] == 'N' and Falses != size // 2:
                 NewData.append(dataset.pop(index))
-                Zeros += 1
+                Falses += 1
         return NewData
 
     # Converts categorical values (such as strings) to integers using a predefined mapping
@@ -81,34 +81,39 @@ class PreProcess:
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature]) / len(feature)) - mean**2) ** 0.5
 
+            # To use when scale userdata properly for the dataset
             self.ScalingData['means'].append(mean)
             self.ScalingData['stds'].append(StandardDeviation)
 
+            # Applying the standardisation
             try:
                 self.FeatureColumns[ind] = [(i - mean) / StandardDeviation for i in feature]
             except ZeroDivisionError:
                 print(f"Mean: {mean} \nSTD: {StandardDeviation}")
                 input(self.FeatureColumns[ind])
 
-    # Splits the dataset into training and test sets
+    # Splits the dataset into training and test sets and returns the data
     def getData(self, split=0.2): # default: 80-20 split
         NumOfTrainData = round(len(self.__TrainX) * split)
         TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
         TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
         return self.__TrainX, self.__TrainY, TestX, TestY
 
+    # Used when loading a model
     def updateScalingVals(self, data):
         self.ScalingData = data
 
-    # Encodes user data by standardising and mapping categorical values
+    # Encodes userdata by standardising and mapping categorical values
     def encode(self, UserData):
         try:
             for x, val in enumerate(UserData):
+                # Converting into numerical data
                 if val in self.CategoricalFeatureKeys.keys():
                     val = float(self.CategoricalFeatureKeys[val])
                 else:
                     val = float(val)
 
+                # Standardising the data
                 UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
 
             return UserData
@@ -116,51 +121,52 @@ class PreProcess:
             print(e)
 
 '''
-Commonly used processes by other programs
+Commonly used maths functions processes by other programs
 '''
 class DataMethod:
     @staticmethod
     def CsvToArray(path): 
         # loads all data ignoring entries with missing data
         table = []
-        count = 0
         with open(path, "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 if '' not in row:
                     table.append(row)
-                else:
-                    count += 1
         file.close()
 
         return table
 
+    # Swaps row and columns (eg. [[2, 4, 3], [5, 6, 7]] --> [[2, 5], [4, 6], [3, 7]] )
     @staticmethod
     def Transpose(array):
         return [[array[x][y] for x in range(len(array))] for y in range(len(array[0]))]
 
+    # Performs Dot product on two valid matrices
+    # valid if b = c for shapes (a, b) (c, d) | (Rows, Columns)
     @staticmethod
     def DotProduct(arr1, arr2):
-        if not isinstance(arr1, list):                      # If they are scalars
-            arr1 = [float(arr1) for _ in range(len(arr2[0]))]
-        elif not isinstance(arr2, list):
-            arr2 = [[float(arr2)] for _ in range(len(arr1))]
+        # Ensures they are matrices
+        if isinstance(arr1[0], list) and isinstance(arr2[0], list):
+            # Checks if they are valid 
+            if len(arr1[0]) != len(arr2): 
+                arr1Shape = (len(arr1),len(arr1[0]))
+                arr2Shape = (len(arr2),len(arr2[0]))
 
-        elif not isinstance(arr1[0], list):                 # If they are 1d arrays
-            arr1 = [arr1]
-        elif not isinstance(arr2[0], list):
-            arr2 = [[item] for item in arr2]
+                raise ValueError(f"arr1: ({arr1Shape}) and arr2: ({arr2Shape}) are not valid.")
+            
+            # Empty matrix to hold results
+            result = [[0 for _ in range(len(arr2[0]))] for _ in range(len(arr1))]
 
-        arr1Shape = len(arr1), len(arr1[0])
-        arr2Shape = len(arr2), len(arr2[0])
-
-        if arr1Shape[1] != arr2Shape[0]:
-            raise ValueError(f"Matrix dimensions are not compatible: {arr1Shape} and {arr2Shape}.")
-
-        output = [[sum(a * b for a, b in zip(row, col)) for col in zip(*arr2)] for row in arr1]
-
-        return output
+            for i, row in enumerate(arr1):                             # For each row in arr1 
+                for j, column in enumerate(DataMethod.Transpose(arr2)):# For each column in arr2
+                    result[i][j] = sum(DataMethod.Multiply(row, column))
     
+            return result
+        else:
+            raise ValueError("Parameters aren't matrices")
+    
+    # Performs multiplications involving arrays 
     @staticmethod
     def Multiply(arr1, arr2): # Limitation: dimensions of arr1 Must be <= dimensions of arr2
         try:
@@ -180,7 +186,7 @@ class DataMethod:
         except Exception as ex:
             print(ex)
 
-# shuffles two lists while maintaining thier corresspronding element
+# shuffles two lists while maintaining their corresponding element
 def ShuffleData(X, Y): 
     a = list(zip(X, Y))
     random.shuffle(a)

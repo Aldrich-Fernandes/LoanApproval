@@ -112,7 +112,8 @@ class Model:
 
             # Output evaluation of training loop
             if show:
-                self.__DisplayResults(iteration, loss=losses[-1], accuracy=accuracies[-1], learningRate=lrs[-1])
+                self.__DisplayResults(iteration, loss=losses[-1], accuracy=accuracies[-1], 
+                                      learningRate=lrs[-1])
         
         # Visulaises the training outcomes
         if canGraph:
@@ -151,8 +152,8 @@ class Model:
         plt.show(block=False)
 
     # Outputs evaluation for that iteration
-    def __DisplayResults(self, iteration, loss, accuracy, learningRate):
-        print(f"Iteration: {iteration} Loss: {round(loss, 5)} Accuracy: {round(accuracy, 5)} Lr: {learningRate}\n\n")
+    def __DisplayResults(self, iter, loss, accu, Lr):
+        print(f"Iteration: {iter} Loss: {round(loss, 5)} Accuracy: {round(accu, 5)} Lr: {Lr}\n\n")
 
     # Saves the model in a txt file
     def saveModel(self, filePath, ScalingData):

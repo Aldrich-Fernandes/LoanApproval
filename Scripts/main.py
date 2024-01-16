@@ -4,29 +4,33 @@ from DataHandle import PreProcess
 
 import tkinter as tk
 from tkinter import ttk, simpledialog
-
+'''
+User Interface
+'''
 class GUI:
     def __init__(self):
-        self.__model = Model()
-        self.__model.add(Layer(6, 1, "Sigmoid"))
-        self.__PreProcessor = PreProcess()
+        self.__model = Model()                      # Neural Network model
+        self.__model.add(Layer(6, 1, "Sigmoid"))    # adding Layers
+        self.__PreProcessor = PreProcess()          # For preping data
 
+        # Loading the GUI window
         self.root = tk.Tk()
         self.root.protocol("WM_DELETE_WINDOW", self.__exit)
         self.root.title("Home Loan Eligibility Application")
         self.root.geometry("900x600")
 
-        self.__Font = ('Arial', 14)
-        self.__training = False
+        self.__Font = ('Arial', 14)     # Default font to use
+        self.__training = False         # Pauses userinput if model is being trained
 
+        # Tkinter varible for outputs and user inputs
         self._resultVal = tk.StringVar(value="...")
         self._saveStatusVal = tk.StringVar(value="Unsaved")
         self._fileName = tk.StringVar()
 
         self._CreateTabs()
-
         self.__loadDefault()
 
+    # Creates the different tabs (eg. Prediction and hyperparameter adjustment)
     def _CreateTabs(self):
         # Create a notebook (tabs container)
         self.__notebook = ttk.Notebook(self.root)
@@ -37,6 +41,7 @@ class GUI:
         self._LoadPredictionGUI()
         self._LoadHyperparametersTab()
 
+    # Dropdown menu that allows to change the model used (eg. train new or load default)
     def _LoadMenu(self):
         # Create a menu
         menuBar = tk.Menu(self.root)
@@ -50,14 +55,16 @@ class GUI:
         Menu.add_separator()
         Menu.add_command(label="Exit", command=self.__exit)
 
+    # This tab allows users to change hyperparameters and retrain model
     def _LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
         hyperparameterFrame = ttk.Frame(self.__notebook)
         self.__notebook.add(hyperparameterFrame, text="Hyperparameters")
 
+        # Adjustable hyperparameters
         self._updateValsTo = {"newEpoch": tk.IntVar(value = 25),
                              "newRegStr": tk.DoubleVar(value = 0.001),
-                             "initialLearningRate": tk.DoubleVar(value = 0.0001),
+                             "initialLr": tk.DoubleVar(value = 0.0001),
                              "decay": tk.DoubleVar(value = 0.00005),
                              "momentum": tk.DoubleVar(value = 0.95)}
 
@@ -83,7 +90,7 @@ class GUI:
         tk.Label(hyperparameterFrame, text="Initial Learning Rate:", font=self.__Font).grid(
             row=4, column=0, padx=10, pady=5)
         
-        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["initialLearningRate"], font=self.__Font).grid(
+        tk.Entry(hyperparameterFrame, textvariable=self._updateValsTo["initialLr"], font=self.__Font).grid(
             row=4, column=1, padx=10, pady=5)
 
         tk.Label(hyperparameterFrame, text="Decay:", font=self.__Font).grid(
@@ -101,6 +108,7 @@ class GUI:
         tk.Button(hyperparameterFrame, text="ReTrain Model", command=self.__updateHyperparameters).grid(
             row=8, column=0, columnspan=3, pady=10)
 
+    # Updates the model's hyperparameters and retrains the model with the new hyperparameters
     def __updateHyperparameters(self):
         try:
             optimiserVals = [item.get() for item in list(self._updateValsTo.values())]
@@ -113,12 +121,15 @@ class GUI:
             print("Retraining model...")
             self.__newModel()
 
-        except ValueError: print("Invalid input for epochs or regularisation strength. Please enter valid values.")
+        except ValueError: 
+            print("Invalid input for epochs or regularisation strength. Please enter valid values.")
 
+    # Main Prediction Interface
     def _LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.__notebook)
         self.__notebook.add(predictFrame, text="Prediction")
 
+        # Data that is passed through the model
         DataToGet = {'Applicant monthly income: ': -1,
                      'Coapplicant monthly income: ': -1,
                      'Loan amount (in thousands): ': -1,
@@ -126,21 +137,26 @@ class GUI:
                      'Credit history meet guidelines?: ': ["Yes", "No"],
                      'Property area: ': ["Urban", "Semiurban", "Rural"]}
         
+        # Creates a list of empty tkinter string variables to user inputs
         self.UserData = [tk.StringVar() for _ in range(len(DataToGet.keys()))]
         for index, (key, data) in enumerate(DataToGet.items()):
+            # Data Prompt
             tk.Label(predictFrame, text=key, font=self.__Font).grid(row=index, column=0, padx=5, pady=5)
 
-            if type(data) == list:
+            # User inputs
+            if type(data) == list:  # Multiple choice option
                 for col, option in enumerate(data):
-                    tk.Radiobutton(predictFrame, text=option, value=option, variable=self.UserData[index], font=self.__Font).grid(
-                        row=index, column=col + 1, padx=5, pady=5)
-            else:
+                    tk.Radiobutton(predictFrame, text=option, value=option, variable=self.UserData[index], 
+                                   font=self.__Font).grid(row=index, column=col + 1, padx=5, pady=5)
+            else:                   # Interger inputs
                 tk.Entry(predictFrame, textvariable=self.UserData[index], font=self.__Font).grid(
                     row=index, column=1, padx=5, pady=5)
 
+        # Button - Processes data
         tk.Button(predictFrame, text="Enter", font=self.__Font, command=self.__ProcessUserData).grid(
             row=len(DataToGet), column=0, columnspan=2, pady=10)
 
+        # Updateable status prompts
         self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
         self._ResultLabel.grid(row=len(DataToGet) + 1, column=1, columnspan=2, pady=10)
         self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
@@ -151,20 +167,24 @@ class GUI:
         tk.Entry(predictFrame, textvariable=self._fileName, font=self.__Font).grid(
             row=len(DataToGet)+3, column=2,columnspan=2, pady=10)
 
+    # Processes UserData throguh the model
     def __ProcessUserData(self):
         if not self.__training:
             try:
+                # Converts tkinter vairbles into normal data to be preprocessed
                 self.CollectedData = []
                 for data in self.UserData:
                     self.CollectedData.append(data.get())
 
+                # Ensures all data is vaild
                 if not ('' in self.CollectedData or len(self.CollectedData) != 6):
+                    # Encodes data - More info in DataHandle.py file
                     UserData = self.__PreProcessor.encode(self.CollectedData)
                     self.__model.Predict([UserData])
 
-                    result = round(self.__model.Result, 4)
+                    result = round(self.__model.Result * 100)
                     
-                    status = f"You have a {result*100}% chance of being Approved"
+                    status = f"You have a {result}% chance of being Approved"
                 else:
                     status = "Missing or incorrect data."
             except ValueError:
@@ -172,19 +192,26 @@ class GUI:
         else:
             status = "Model is training. Please wait."
 
+        # Updates result prompts
         self._resultVal.set(status)
         self._ResultLabel.config(textvariable=self._resultVal)
 
+    # Generates a new Neural network model using defualt hyperparameters
     def __newModel(self):
+        # Restarts already intialised Preprocess object
         self.__PreProcessor.newDataset()
         TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
 
         while True:
-
+            # Trains model with new random data
             self.__model.train(TrainX, TrainY)
             self.__model.test(TestX, TestY)
             accuracy = self.__model.Accuracy
-    
+
+            # Due to model limitations the model will be trained again if it is 
+            # not at a acceptatblw accuracy. This is to ensure that the model 
+            # doesn't overfit ('memorise' training data) or converge on one output
+            # (eg. always output 1 prediction like 0.643 or 64.3%)
             if accuracy <= 0.7:
                 print(f"Unstable Model - Accuracy: {accuracy}. \nRetraining...\n")
                 self.__model.resetLayers()
@@ -195,6 +222,7 @@ class GUI:
                 self.__training = False
                 break
 
+    # Saves model data so that it can be loaded later
     def _saveModel(self):
         if self._fileName.get() != "":
             filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
@@ -202,6 +230,7 @@ class GUI:
             self._saveStatusVal.set(status)
             self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
+    # Loads saved models
     def _loadModel(self):
         modelName = simpledialog.askstring("Load Another Model", "Enter model name:")
         filePath = f"DataSet\\Models\\{modelName}.txt"
@@ -212,14 +241,17 @@ class GUI:
         else:
             self.__PreProcessor.updateScalingVals(scalingData)
 
+    # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
         filePath = f"DataSet\\Models\\default.txt"
         scalingData = self.__model.loadModel(filePath)
         self.__PreProcessor.updateScalingVals(scalingData)
 
+    # Terminates the window 
     def __exit(self):
         self.root.destroy()
 
+# Main loop
 def main():
     myGUI = GUI()
     myGUI.root.mainloop()

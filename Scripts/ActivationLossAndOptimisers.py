@@ -28,20 +28,19 @@ class ReLU(Activation): # Rectified Linear Unit
         self.outputs = [[max(0, element) for element in entry]
                         for entry in inputs]
 
-    # if value in inputs was > 0 then gradient = 1
+    # if input value was > 0 then gradient = 1
     def backward(self, _):
         self.dinputs = [[1 if element > 0 else 0 for element in sample] for sample in self.inputs] 
 
 class Sigmoid(Activation):
     def __init__(self): 
         # So that a new instance is not created each time the forward() is run
+        # Prevents overflow errors with the exp() function
         self.__positive = lambda x: 1 / (exp(-x) + 1)
         self.__negative = lambda x: exp(x) / (exp(x) + 1)
 
     # Squashes data between 0 and 1
     def forward(self, inputs): 
-
-        # Prevents overflow errors with the exp() function
         self.outputs = [self.__negative(val[0]) if val[0] < 0 else self.__positive(val[0]) for val in inputs]
 
     def backward(self, dvalues):
@@ -60,7 +59,7 @@ class BinaryCrossEntropy:
         self.__sampleLoss = 0.0                     # Measure of how far the prediction is from the true value
         self.__regLoss = 0.0                        # Additional term to sampleLoss to deter large weights
   
-        self.__regStr = regStr                      # How strongly to penalise the model
+        self.__regStr = regStr                      # How strongly to penalise the model for large weights
 
     # Calculates how far the predicted values are from the true values
     def forward(self, predictions, TrueVals):
@@ -72,8 +71,6 @@ class BinaryCrossEntropy:
 
         self.__sampleLoss = sum(sampleLoss) / len(sampleLoss)   # Average of all samples
 
-        self.__regLoss = 0                                      # Resets the loss for that epoch
-
     # Gradient of what impacted the result the most
     def backward(self, predicted, TrueVals): 
         predicted = clipEdges(predicted)
@@ -82,7 +79,7 @@ class BinaryCrossEntropy:
         self.dinputs = [(PredictVal - Tval) / ((1-PredictVal) * PredictVal) 
                         for Tval, PredictVal in zip(TrueVals, predicted)]
 
-    # For adjust the hyperparameter when training a new model
+    # Used to change the hyperparameter when training a new model
     def updateRegStr(self, regStr):
         self.__regStr = regStr
 
@@ -91,7 +88,7 @@ class BinaryCrossEntropy:
         if self.__regStr != 0:
             weightSqrSum = sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
 
-            self.__regLoss += 0.5 * self.__regStr * weightSqrSum
+            self.__regLoss = 0.5 * self.__regStr * weightSqrSum
 
     # Returns total loss when called.
     def getLoss(self):
@@ -114,7 +111,7 @@ class OptimiserSGD:
         self.__momentum = momentum                                # Promotes adjustment movement in one direction
         self.activeLearningRate = InitialLearningRate             # How much to adjust/step. 
 
-        self.__mode = mode
+        self.__mode = mode                                        # What type of decay to use
 
     # Gradually decreases the learning rate to avoid overshooting the optimal parameters
     # If it is too high it will overshoot the optimal but if too low the mode won't train properly.
@@ -153,7 +150,7 @@ class OptimiserSGD:
             # Updates veloites for the layer to be used in the next loop
             layer.setVelocities(weightVelocityUpdate, biasesVelocityUpdate)
 
-            # Final (optimising )updates to the weights and biases of the layer for this loop
+            # Final (optimising) updates to the weights and biases of the layer for this loop
             weights = [[a + b for a, b in zip(weights[x], weightVelocityUpdate[x])] 
                        for x in range(len(weights))]
             biases = [a + b for a, b in zip(biases, biasesVelocityUpdate)]
@@ -162,7 +159,6 @@ class OptimiserSGD:
                        for x in range(len(weights))]
             biases = [a - b for a, b in zip(biases, biasesUpdate)]
 
-#
         layer.setWeightsAndBiases(weights, biases)
 
 # Replaces any 0s or 1s to avoid arithmetic errors

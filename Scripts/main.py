@@ -24,7 +24,7 @@ class GUI:
 
         # Tkinter varible for outputs and user inputs
         self._resultVal = tk.StringVar(value="...")
-        self._saveStatusVal = tk.StringVar(value="Unsaved")
+        self._saveStatusVal = tk.StringVar(value="Default model loaded")
         self._fileName = tk.StringVar()
 
         self._CreateTabs()

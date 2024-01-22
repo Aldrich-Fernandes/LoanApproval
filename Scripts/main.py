@@ -19,8 +19,20 @@ class GUI:
         self.root.title("Home Loan Eligibility Application")
         self.root.geometry("900x600")
 
+        # Create a notebook (tabs container)
+        self.__notebook = ttk.Notebook(self.root)
+        self.__notebook.pack(expand=True, fill='both')
+
+        # Setting varibles
         self.__Font = ('Arial', 14)     # Default font to use
         self.__training = False         # Pauses userinput if model is being trained
+        
+        # Adjustable hyperparameters
+        self._updateValsTo = {"newEpoch": tk.IntVar(value = 25),
+                             "newRegStr": tk.DoubleVar(value = 0.001),
+                             "initialLr": tk.DoubleVar(value = 0.0001),
+                             "decay": tk.DoubleVar(value = 0.00005),
+                             "momentum": tk.DoubleVar(value = 0.95)}
 
         # Tkinter varible for outputs and user inputs
         self._resultVal = tk.StringVar(value="...")
@@ -28,18 +40,15 @@ class GUI:
         self._fileName = tk.StringVar()
 
         self._CreateTabs()
-        self.__loadDefault()
 
     # Creates the different tabs (eg. Prediction and hyperparameter adjustment)
     def _CreateTabs(self):
-        # Create a notebook (tabs container)
-        self.__notebook = ttk.Notebook(self.root)
-        self.__notebook.pack(expand=True, fill='both')
-
-        # Create tabs
         self._LoadMenu()
-        self._LoadPredictionGUI()
-        self._LoadHyperparametersTab()
+
+        self.__LoadPredictionGUI()
+        self.__loadDefault()
+
+        self.__LoadHyperparametersTab()
 
     # Dropdown menu that allows to change the model used (eg. train new or load default)
     def _LoadMenu(self):
@@ -56,17 +65,10 @@ class GUI:
         Menu.add_command(label="Exit", command=self.__exit)
 
     # This tab allows users to change hyperparameters and retrain model
-    def _LoadHyperparametersTab(self):
+    def __LoadHyperparametersTab(self):
         # Create a new frame for the Hyperparameters tab
         hyperparameterFrame = ttk.Frame(self.__notebook)
         self.__notebook.add(hyperparameterFrame, text="Hyperparameters")
-
-        # Adjustable hyperparameters
-        self._updateValsTo = {"newEpoch": tk.IntVar(value = 25),
-                             "newRegStr": tk.DoubleVar(value = 0.001),
-                             "initialLr": tk.DoubleVar(value = 0.0001),
-                             "decay": tk.DoubleVar(value = 0.00005),
-                             "momentum": tk.DoubleVar(value = 0.95)}
 
         # Add widgets for adjusting hyperparameters
 
@@ -125,7 +127,7 @@ class GUI:
             print("Invalid input for epochs or regularisation strength. Please enter valid values.")
 
     # Main Prediction Interface
-    def _LoadPredictionGUI(self):
+    def __LoadPredictionGUI(self):
         predictFrame = ttk.Frame(self.__notebook)
         self.__notebook.add(predictFrame, text="Prediction")
 

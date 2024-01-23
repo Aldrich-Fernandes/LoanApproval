@@ -23,7 +23,7 @@ class Model:
     # Configuration Modules
         
     # Adds new layer to the model
-    def add(self, layer):
+    def addLayer(self, layer):
         self.__Layers.append(layer)
 
     # Resets layer with new, random weights

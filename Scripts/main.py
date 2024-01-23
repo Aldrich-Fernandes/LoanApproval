@@ -10,7 +10,7 @@ User Interface
 class GUI:
     def __init__(self):
         self.__model = Model()                      # Neural Network model
-        self.__model.add(Layer(6, 1, "Sigmoid"))    # adding Layers
+        self.__model.addLayer(Layer(6, 1, "Sigmoid"))    # adding Layers
         self.__PreProcessor = PreProcess()          # For preping data
 
         # Loading the GUI window
@@ -223,6 +223,10 @@ class GUI:
                 print(f"Model Successful - Accuracy: {accuracy}")
                 self.__training = False
                 break
+
+        self._saveStatusVal.set("Unsaved")
+        self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+        
 
     # Saves model data so that it can be loaded later
     def _saveModel(self):

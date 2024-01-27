@@ -1,11 +1,13 @@
-from NeuralNetwork import *
-from Layer import *
+from NeuralNetwork import LogisticRegression as Model
+from NeuralNetwork import Layer
 from DataHandle import PreProcess
 
 import tkinter as tk
 from tkinter import ttk, simpledialog
+
 '''
 User Interface
+
 '''
 class GUI:
     def __init__(self):

@@ -1,6 +1,6 @@
-import unittest
+from Scripts.Activations import ReLU, Sigmoid
 
-from Scripts.ActivationLossAndOptimisers import ReLU, Sigmoid
+import unittest
 
 class TestActivations(unittest.TestCase):
     

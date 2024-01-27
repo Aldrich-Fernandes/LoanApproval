@@ -1,11 +1,16 @@
-from DataHandle import DataMethod, ShuffleData
-from ActivationLossAndOptimisers import BinaryCrossEntropy, OptimiserSGD
+from DataHandle import DataMethod as DM
+from LossAndOptimiser import OptimiserSGD, BinaryCrossEntropy
 
 import matplotlib.pyplot as plt
 
-DM = DataMethod()
+'''
+Model - Logistic Regression
 
-class Model:
+Acts as the brain of the model, collating and controlling all components needed to perform Logistic 
+Regression.
+
+'''
+class LogisticRegression:
     # Creates a blank model
     def __init__(self, Epochs=25, regularisationStrength=0.001):
         # Tracking variables
@@ -69,7 +74,7 @@ class Model:
             lossHold = []
             learningRateHold = []
             
-            ShuffleData(X, Y)                        # Shuffling dataset - Improves generalisation
+            DM.ShuffleData(X, Y)                        # Shuffling dataset - Improves generalisation
         
             # Using batchs - Reduces overfitting by passing smaller groups of data to the model at a time
             for i in range(0, sampleSize, batch):

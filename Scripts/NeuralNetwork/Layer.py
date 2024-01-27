@@ -1,8 +1,24 @@
-from ActivationLossAndOptimisers import ReLU, Sigmoid
+from Activations import Sigmoid, ReLU
 from DataHandle import DataMethod as DM
 from math import sqrt
 from random import gauss
 
+'''
+Layer
+
+Houses a collection of Neurons
+
+3 types:
+- Input -- First layer the data passes through. (This layer needs to match the number of features
+            in the preprocessed training data.)
+- Hidden -- Additional layers to increase complexity of the neural network. (The number of these
+            layers and neurons significantly affect the model. Logistic regression usually doesn't
+            use hidden layers.)
+- Output -- Final layer and performs final prediction. (eg, in classification
+            all neurons outputs of in this layer will as to one, or in binary classification 
+            the it contains only 1 neuron, whose output is between 0 and 1.)
+
+'''
 class Layer:
     def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrength=0.001):
         self._NoOfInputs = NoOfInputs           # Number of neurons/inputs in the previous layer

@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # From my programs
-from DataHandle import PreProcess
+from DataHandle.PreProcess import PreProcess
 
 # random forest classification - utilises tree traversal
 def RandForest(X_train, X_test, y_train, y_test):

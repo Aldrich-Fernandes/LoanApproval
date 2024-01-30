@@ -192,4 +192,3 @@ class LogisticRegression:
             return scalingData
         except FileNotFoundError:
             return -1
-

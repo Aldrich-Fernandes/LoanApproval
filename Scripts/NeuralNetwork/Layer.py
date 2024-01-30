@@ -8,15 +8,7 @@ Layer
 
 Houses a collection of Neurons
 
-3 types:
-- Input -- First layer the data passes through. (This layer needs to match the number of features
-            in the preprocessed training data.)
-- Hidden -- Additional layers to increase complexity of the neural network. (The number of these
-            layers and neurons significantly affect the model. Logistic regression usually doesn't
-            use hidden layers.)
-- Output -- Final layer and performs final prediction. (eg, in classification
-            all neurons outputs of in this layer will as to one, or in binary classification 
-            the it contains only 1 neuron, whose output is between 0 and 1.)
+This class automatically applies activation to the layer's output.
 
 '''
 class Layer:

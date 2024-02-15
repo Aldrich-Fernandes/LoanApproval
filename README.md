@@ -13,3 +13,7 @@ The Home Loan Eligibility Application is a user-friendly software tool designed 
 ## Dataset
 Dataset utilsied: https://www.kaggle.com/datasets/rishikeshkonapure/home-loan-approval
 Analysis of Data: https://www.kaggle.com/code/srikanth917/home-loan-approval-prediction
+
+# Writeup
+The writeup of the project can be found through the link below:
+[Link to Google Docs](https://docs.google.com/document/d/1xA49kCK2PhU2wJdTIZVXej3GhVxwas2FEf1vbJrNt7Y/edit?usp=sharing)

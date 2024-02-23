@@ -123,7 +123,6 @@ class LogisticRegression:
         # Visulaises the training outcomes
         if canGraph:
             self.__graph(accuracies, losses, lrs)
-            input("Press ENTER to continue")
 
     # Tests the model using data it has never seen
     def test(self, TestX, TestY, showTests=False):

@@ -164,7 +164,7 @@ class GUI:
         self._ResultLabel = tk.Label(predictFrame, textvariable=self._resultVal, font=self.__Font)
         self._ResultLabel.grid(row=len(DataToGet) + 1, column=1, columnspan=2, pady=10)
         self._saveStatusLabel = tk.Label(predictFrame, textvariable=self._saveStatusVal, font=self.__Font)
-        self._saveStatusLabel.grid(row=len(DataToGet)+4, column=1,columnspan=2, pady=10)
+        self._saveStatusLabel.grid(row=len(DataToGet)+4, columnspan=4, pady=10, sticky="WE")
 
         tk.Button(predictFrame, text="Save Model", font=self.__Font, command=self._saveModel).grid(
             row=len(DataToGet)+3, column=0, columnspan=2, pady=10)
@@ -206,30 +206,27 @@ class GUI:
         self.__PreProcessor.newDataset()
         TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
 
-        while True:
+        valid = False
+        while not valid:
             # Trains model with new random data
             self.__model.train(TrainX, TrainY)
             self.__model.test(TestX, TestY)
             accuracy = self.__model.Accuracy
 
-            # Due to model limitations the model will be trained again if it is 
-            # not at a acceptatblw accuracy. This is to ensure that the model 
-            # doesn't overfit ('memorise' training data) or converge on one output
-            # (eg. always output 1 prediction like 0.643 or 64.3%)
-            if accuracy <= 0.7:
-                print(f"Unstable Model - Accuracy: {accuracy}. \nRetraining...\n")
+            # Due to model limitations the model will be trained again if it is not at a acceptable accuracy. 
+            # This is to ensure that the model doesn't overfit ('memorise' training data) or converge on one 
+            # output (eg. always output 1 prediction like 0.643 or 64.3%)
+            if accuracy > 0.74:
+                status = f"Valid model generated - Accuracy: {accuracy}    |    Unsaved"
+                self.__training, valid = False, True
+            else:
+                status = f"Invalid model - Accuracy: {accuracy}    |    Retraining..."
                 self.__model.resetLayers()
                 self.__PreProcessor.newDataset()
                 TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
-            else:
-                print(f"Model Successful - Accuracy: {accuracy}")
-                self.__training = False
-                break
-
-        self._saveStatusVal.set("Unsaved")
-        self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+            self._saveStatusVal.set(status)
+            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
         
-
     # Saves model data so that it can be loaded later
     def _saveModel(self):
         if self._fileName.get() != "":
@@ -252,8 +249,12 @@ class GUI:
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
         filePath = f"DataSet\\Models\\default.txt"
+        self.__model = Model()      # Resets model incase default hyperparameters were changed.
         scalingData = self.__model.loadModel(filePath)
         self.__PreProcessor.updateScalingVals(scalingData)
+        status = "Default model loaded"
+        self._saveStatusVal.set(status)
+        self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
     # Terminates the window 
     def __exit(self):
@@ -263,5 +264,4 @@ class GUI:
 def main():
     myGUI = GUI()
     myGUI.root.mainloop()
-
 main()

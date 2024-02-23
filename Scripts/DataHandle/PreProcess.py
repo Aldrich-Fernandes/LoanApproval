@@ -8,10 +8,11 @@ training or prediction
 
 '''
 class PreProcess:
-    def __init__(self):
+    def __init__(self, path=r"DataSet//HomeLoanTrain.csv"):
         # Initial data holders for training data
         self.__TrainX = []
         self.__TrainY = []
+
 
         # Data specific to the training data used
         self.__featuresToRemove = ["Loan_ID", "Self_Employed", "Gender", "Education", "Married", "Dependents"]
@@ -19,11 +20,12 @@ class PreProcess:
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}
         self.ScalingData = {'means': [], 'stds': []}
+        self.__path = path
 
     # Generates a new random dataset
     def newDataset(self):
         # Extract data from file and selecting valid entries/features
-        Dataset = DataMethod.CsvToArray(r"DataSet//HomeLoanTrain.csv")
+        Dataset = DataMethod.CsvToArray(self.__path)
         Dataset = self.__RemoveFeatures(Dataset)
         Dataset = self.__AdjustSkew(Dataset) 
 

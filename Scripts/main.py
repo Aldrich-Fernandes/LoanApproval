@@ -202,6 +202,9 @@ class GUI:
 
     # Generates a new Neural network model using defualt hyperparameters
     def __newModel(self):
+        self._saveStatusVal.set("Generating new model...")
+        self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+
         # Restarts already intialised Preprocess object
         self.__PreProcessor.newDataset()
         TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()

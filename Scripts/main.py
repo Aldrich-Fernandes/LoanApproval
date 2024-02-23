@@ -222,13 +222,12 @@ class GUI:
             if accuracy > 0.74:
                 status = f"Valid model generated - Accuracy: {accuracy}    |    Unsaved"
                 self.__training, valid = False, True
+                self._saveStatusVal.set(status)
+                self._saveStatusLabel.config(textvariable=self._saveStatusVal)
             else:
-                status = f"Invalid model - Accuracy: {accuracy}    |    Retraining..."
                 self.__model.resetLayers()
                 self.__PreProcessor.newDataset()
                 TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
-            self._saveStatusVal.set(status)
-            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
         
     # Saves model data so that it can be loaded later
     def _saveModel(self):
@@ -253,7 +252,9 @@ class GUI:
     def __loadDefault(self):
         filePath = f"DataSet\\Models\\default.txt"
         self.__model = Model()      # Resets model incase default hyperparameters were changed.
+        self.__model.addLayer(Layer(6, 1, "Sigmoid"))
         scalingData = self.__model.loadModel(filePath)
+
         self.__PreProcessor.updateScalingVals(scalingData)
         status = "Default model loaded"
         self._saveStatusVal.set(status)

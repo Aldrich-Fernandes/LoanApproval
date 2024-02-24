@@ -66,7 +66,7 @@ class DataMethod:
             else: # For 1d x 1d
                 return [a * b for a, b in zip(arr1, arr2)]
         except Exception as ex:
-            print(ex)
+            print(f"Datamethod.Multipy error: {ex}")
 
     # shuffles two lists while maintaining their corresponding element
     @staticmethod

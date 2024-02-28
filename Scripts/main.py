@@ -242,7 +242,7 @@ class GUI:
         modelName = simpledialog.askstring("Load Another Model", "Enter model name:")
         filePath = f"DataSet\\Models\\{modelName}.txt"
         scalingData = self.__model.loadModel(filePath)
-        if scalingData == -1:
+        if scalingData == None:
             print("File not found. Loading default...")
             self.__loadDefault()
         else:
@@ -250,7 +250,7 @@ class GUI:
 
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
-        filePath = f"DataSet\\Models\\default.txt"
+        filePath = "DataSet\\Models\\default.txt" 
         self.__model = Model()      # Resets model incase default hyperparameters were changed.
         self.__model.addLayer(Layer(6, 1, "Sigmoid"))
         scalingData = self.__model.loadModel(filePath)

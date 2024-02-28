@@ -189,5 +189,5 @@ class LogisticRegression:
                     layer.setWeightsAndBiases(weights, biases)
 
             return scalingData
-        except FileNotFoundError:
-            return -1
+        except FileNotFoundError as ex:
+            print(f"Loading error: {ex}")

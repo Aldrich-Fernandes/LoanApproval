@@ -121,5 +121,5 @@ class PreProcess:
                 UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
 
             return UserData
-        except Exception as EX:
-            print(f"Encode Error: {EX}")
+        except Exception as ex:
+            print(f"Encode Error: {ex}")

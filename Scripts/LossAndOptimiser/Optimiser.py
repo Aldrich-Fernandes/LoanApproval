@@ -1,4 +1,4 @@
-from Scripts.DataHandle import DataMethod as DM
+from DataHandle import DataMethod as DM
 
 from math import exp
 

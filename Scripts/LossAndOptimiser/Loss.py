@@ -1,4 +1,4 @@
-from DataHandle import DataMethod as DM
+from Scripts.DataHandle import DataMethod as DM
 
 from math import log
 

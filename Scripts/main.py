@@ -1,6 +1,6 @@
-from NeuralNetwork import LogisticRegression as Model
-from NeuralNetwork import Layer
-from DataHandle import PreProcess
+from Scripts.NeuralNetwork import LogisticRegression as Model
+from Scripts.NeuralNetwork import Layer
+from Scripts.DataHandle import PreProcess
 
 import tkinter as tk
 from tkinter import ttk, simpledialog

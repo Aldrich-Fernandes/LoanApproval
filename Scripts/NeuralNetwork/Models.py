@@ -1,5 +1,5 @@
-from DataHandle import DataMethod as DM
-from LossAndOptimiser import OptimiserSGD, BinaryCrossEntropy
+from Scripts.DataHandle import DataMethod as DM
+from Scripts.LossAndOptimiser import OptimiserSGD, BinaryCrossEntropy
 
 import matplotlib.pyplot as plt
 

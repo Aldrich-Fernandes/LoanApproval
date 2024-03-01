@@ -1,4 +1,4 @@
-from Scripts.NeuralNetwork import BinaryCrossEntropy
+from Scripts.LossAndOptimiser.Loss import BinaryCrossEntropy
 
 import unittest
 

@@ -1,4 +1,4 @@
-from .DataMethods import DataMethod
+from .DataUtils import DataMethod
 from .PreProcess import PreProcess
 
 __all__ = [

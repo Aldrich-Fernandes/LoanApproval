@@ -1,7 +1,7 @@
-import unittest
+from Scripts.Activations.ReLU import ReLU
+from Scripts.Activations.Sigmoid import Sigmoid
 
-from Scripts.NeuralNetwork import ReLU
-from Scripts.NeuralNetwork import Sigmoid
+import unittest
 
 class TestRectifiedLinearUnit(unittest.TestCase):
     def setUp(self):

@@ -1,4 +1,4 @@
-from .DataMethods import DataMethod
+from .DataUtils import DataMethod
 
 import random
 

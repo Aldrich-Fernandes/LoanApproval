@@ -1,6 +1,6 @@
-import random
-
 from .DataMethods import DataMethod
+
+import random
 
 '''
 Raw Data cannot be processed by the model. Therefore both training and userdata have to be adjusted prior to 

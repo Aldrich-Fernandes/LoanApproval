@@ -2,7 +2,7 @@ from Scripts.Activations import ReLU, Sigmoid
 
 import unittest
 
-class TestActivations(unittest.TestCase):
+class TestRectifiedLinearUnit(unittest.TestCase):
     
     def test_reluForward(self):
         relu = ReLU()
@@ -20,6 +20,7 @@ class TestActivations(unittest.TestCase):
         expected = [[0, 0, 1], [1, 0, 1]]
         self.assertEqual(relu.dinputs, expected)
 
+class TestSigmoid(unittest.TestCase):
     def test_sigmoidForward(self):
         sigmoid = Sigmoid()
         inputs = [[-1], [0], [1]]

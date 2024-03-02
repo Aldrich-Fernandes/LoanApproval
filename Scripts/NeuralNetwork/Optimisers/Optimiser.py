@@ -17,7 +17,7 @@ class OptimiserSGD:
         self.__InitialLearningRate = InitialLearningRate          # Starting Learning rate
         self.__minimumLearningRate = InitialLearningRate * 0.001  # Lower bound Learning rate
         self.__decay = decay                                      # Rate at which Learning rate decreases
-        self.__momentum = momentum                                # Promotes adjustment movement in one direction
+        self.__momentum = momentum                                # Promotes adjustment in one direction
         self.activeLearningRate = InitialLearningRate             # How much to adjust/step. 
 
         self.__mode = mode                                        # What type of decay to use
@@ -56,7 +56,7 @@ class OptimiserSGD:
             biasesVelocityUpdate = [a - b for a, b in zip(
                                         DM.Multiply(self.__momentum, biasesVelocityUpdate), biasesUpdate)]
 
-            # Updates veloites for the layer to be used in the next loop
+            # Updates velocities for the layer to be used in the next loop
             layer.setVelocities(weightVelocityUpdate, biasesVelocityUpdate)
 
             # Final (optimising) updates to the weights and biases of the layer for this loop

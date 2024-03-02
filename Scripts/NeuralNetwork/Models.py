@@ -18,14 +18,14 @@ class LogisticRegression:
     def __init__(self, Epochs=25, regularisationStrength=0.001):
         # Tracking variables
         self.Accuracy = 0.0
-        self.__regStr = regularisationStrength      # How strongly to penelise the model for strong weights
+        self.__regStr = regularisationStrength      # How strongly to penalise the model for strong weights
         self.__Epochs = Epochs                      # How many times the model will see the data
         
         # Layers
         self.__Layers = []
 
         # For backpass
-        self.__LossFunction = BinaryCrossEntropy(self.__regStr)     # Calcuates the model's performance
+        self.__LossFunction = BinaryCrossEntropy(self.__regStr)     # Calculates the model's performance
         self.__Optimiser = OptimiserSGD()                           # Improves the model
 
     # Configuration Modules
@@ -47,12 +47,12 @@ class LogisticRegression:
     def updateEpoch(self, epoch):
         self.__Epochs = epoch
 
-    # Changes regularisation strenght
+    # Changes regularisation strength
     def updateRegStr(self, regStr):
         self.__regStr = regStr
         self.__LossFunction.updateRegStr(regStr)
 
-    # Used for forward progragation through layers
+    # Used for forward propagation through layers
     def __forward(self, data):                                     
         for x, layer in enumerate(self.__Layers):
             if x == 0:
@@ -72,14 +72,14 @@ class LogisticRegression:
 
         # Training loop
         for iteration in range(self.__Epochs):
-            # dataholders for that Epoch (holds output of each batch)
+            # data holders for that Epoch (holds output of each batch)
             accHold = []
             lossHold = []
             learningRateHold = []
             
             DM.ShuffleData(X, Y)                        # Shuffling dataset - Improves generalisation
         
-            # Using batchs - Reduces overfitting by passing smaller groups of data to the model at a time
+            # Using batches - Reduces overfitting by passing smaller groups of data to the model at a time
             for i in range(0, sampleSize, batch):
                 xBatch = X[i:i+batch] 
                 yBatch = Y[i:i+batch]
@@ -87,7 +87,7 @@ class LogisticRegression:
                 # Forward Pass
                 result = self.__forward(xBatch)
 
-                # Evaluating the performace of the model 
+                # Evaluating the performance of the model 
                 self.__LossFunction.forward(result, yBatch)
                 self.__LossFunction.calcRegularisationLoss(self.__Layers[-1].getWeightsAndBiases()[0])
 
@@ -123,7 +123,7 @@ class LogisticRegression:
                 self.__DisplayResults(iteration, loss=losses[-1], accuracy=accuracies[-1], 
                                       learningRate=lrs[-1])
         
-        # Visulaises the training outcomes
+        # Visualises the training outcomes
         if canGraph:
             self.__graph(accuracies, losses, lrs)
 
@@ -141,14 +141,14 @@ class LogisticRegression:
     def Predict(self, UserData):
         self.Result = round(self.__forward(UserData)[0], 4)
 
-    # Displays obserable data - used to intepret issues with the model and manually tune hyperparameters
+    # Displays observable data - used to interpret issues with the model and manually tune hyperparameters
     def __graph(self, accuracies, losses, lrs, sep=True):
         X = [x for x in range(1, self.__Epochs+1)]
         if not sep:     # All data on same graph
             plt.plot(X, losses, label='Loss')
             plt.plot(X, accuracies, label='Accuracy')
             plt.legend()
-        else:           # Different data on seperate graphs
+        else:           # Different data on separate graphs
             _, ax = plt.subplots(3, 1, figsize=(10, 8))
             ax[0].plot(X, losses, label='Loss')
             ax[1].plot(X, accuracies, label='Accuracy')
@@ -187,7 +187,7 @@ class LogisticRegression:
                 biases = eval(file.readline().rstrip())
 
                 if len(layer.getWeightsAndBiases()[1]) != len(biases):
-                    print("Layers dont match... cant load.")
+                    print("Layers don't match... cant load.")
                 else:
                     layer.setWeightsAndBiases(weights, biases)
 

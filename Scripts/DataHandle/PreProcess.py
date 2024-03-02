@@ -69,14 +69,14 @@ class PreProcess:
 
     # Converts categorical values (such as strings) to integers using a predefined mapping
     def __ConvertToInteger(self):
-        for ColumnIndex, features in enumerate(self.__FeatureColumns):
-            for ElementIndex, element in enumerate(features):
+        for ColInd, features in enumerate(self.__FeatureColumns):
+            for EleInd, element in enumerate(features):
                 try:                        # For data that is already numerical
-                    self.__FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+                    self.__FeatureColumns[ColInd][EleInd] = float(element)
                 except ValueError:          # For data that is categorical
                     if element not in self.__CategoricalFeatureKeys.keys():
                         self.__CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
-                    self.__FeatureColumns[ColumnIndex][ElementIndex] = self.__CategoricalFeatureKeys[str(element)]
+                    self.__FeatureColumns[ColInd][EleInd] = self.__CategoricalFeatureKeys[str(element)]
 
     # Z-score normalisation formula: (data - mean) / standard deviation
     # Improves interpretability and model performance by removing scale difference between features 
@@ -92,8 +92,9 @@ class PreProcess:
             # Applying the standardisation
             try:
                 self.__FeatureColumns[ind] = [(i - mean) / StandardDeviation for i in feature]
-            except ZeroDivisionError:
-                print(f"Mean: {mean} \nSTD: {StandardDeviation} \n FeatureColumn: {self.__FeatureColumns[ind]}")
+            except ZeroDivisionError as EXP:
+                print(f"Mean: {mean} \nSTD: {StandardDeviation}")
+                print(f"FeatureColumn: {self.__FeatureColumns[ind]} \n {EXP}")
 
     # Splits the dataset into training and test sets and returns the data
     def getData(self, split=0.2): # default: 80-20 split

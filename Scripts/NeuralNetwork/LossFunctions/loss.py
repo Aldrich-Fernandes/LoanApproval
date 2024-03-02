@@ -9,7 +9,7 @@ Loss
 Measures how well the model performed by comparing the true and predicted values
 
 The algorithm doesn't utilise the calculated loss value directly. It is use to visualise if the model is
-improving when training and identifying what is impacting the model and how much does it. 
+improving when training and identifying what is impacting the model and how much it does.
 
 '''
 class BinaryCrossEntropy:
@@ -41,7 +41,7 @@ class BinaryCrossEntropy:
     def updateRegStr(self, regStr):
         self._regStr = regStr
 
-    # L2 regularisation foumula: 0.5 * regStr * SumOfSquaredWeights
+    # L2 regularisation formula: 0.5 * regStr * SumOfSquaredWeights
     def calcRegularisationLoss(self, layerWeights):
         if self._regStr != 0:
             weightSqrSum = sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])

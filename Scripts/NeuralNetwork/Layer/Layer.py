@@ -21,7 +21,7 @@ class Layer:
         # L2 regularisation - Adds a penalty to prevent overfitting and improve generalisation
         self.__regStr = regularisationStrength
 
-        # Initilise Activation
+        # Initialize Activation
         if activation == "Sigmoid":
             self.activation = Sigmoid()
             self.__Numerator = 1
@@ -53,7 +53,7 @@ class Layer:
 
         self.activation.forward(self.output)
 
-    # Calculates dvalues, dinputs, dweights, dbiases which are gradients that 
+    # Calculated dvalues, dinputs, dweights, dbiases which are gradients that 
     # helps shows how much these attributes impacted the prediction
     def backward(self, dvalues):
 
@@ -73,7 +73,7 @@ class Layer:
             self.dweights = [[a+(2*b) for a, b in zip(self.dweights[x], DweightsSqr[x])] 
                              for x in range(len(self.dweights))]
 
-    # Getters and setters used by the optimiser to retrive and adjust the weights and biases
+    # Getters and setters used by the optimiser to retrieve and adjust the weights and biases
     def getVelocities(self):
         return self._weightsVelocity, self._biasesVelocity
     

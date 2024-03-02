@@ -27,7 +27,8 @@ class DataMethod:
     # Swaps row and columns (eg. [[2, 4, 3], [5, 6, 7]] --> [[2, 5], [4, 6], [3, 7]] )
     @staticmethod
     def Transpose(array):
-        return [[array[x][y] for x in range(len(array))] for y in range(len(array[0]))]
+        return [[array[x][y] for x in range(len(array))] 
+                for y in range(len(array[0]))]
 
     # Performs Dot product on two valid matrices
     # valid if b = c for shapes (a, b) (c, d) | (Rows, Columns)

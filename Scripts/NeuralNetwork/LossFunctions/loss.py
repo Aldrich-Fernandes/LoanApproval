@@ -17,7 +17,7 @@ class BinaryCrossEntropy:
         self.__sampleLoss = 0.0                     # Measure of how far the prediction is from the true value
         self.__regLoss = 0.0                        # Additional term to sampleLoss to deter large weights
   
-        self.__regStr = regStr                      # How strongly to penalise the model for large weights
+        self._regStr = regStr                      # How strongly to penalise the model for large weights
 
     # Calculates how far the predicted values are from the true values
     def forward(self, predictions, TrueVals):
@@ -39,14 +39,14 @@ class BinaryCrossEntropy:
 
     # Used to change the hyperparameter when training a new model
     def updateRegStr(self, regStr):
-        self.__regStr = regStr
+        self._regStr = regStr
 
     # L2 regularisation foumula: 0.5 * regStr * SumOfSquaredWeights
     def calcRegularisationLoss(self, layerWeights):
-        if self.__regStr != 0:
+        if self._regStr != 0:
             weightSqrSum = sum([sum(x) for x in DM.Multiply(layerWeights, layerWeights)])
 
-            self.__regLoss = 0.5 * self.__regStr * weightSqrSum
+            self.__regLoss = 0.5 * self._regStr * weightSqrSum
 
     # Returns total loss when called.
     def getLoss(self):

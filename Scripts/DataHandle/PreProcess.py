@@ -103,10 +103,10 @@ class PreProcess:
         return self._TrainX, self._TrainY, TestX, TestY
 
     # Getters and Setters used when saving and loading a model
-    def setScalingVals(self, data):
+    def setScalingData(self, data):
         self._ScalingData = data
     
-    def getScalingVals(self):
+    def getScalingData(self):
         return self._ScalingData
 
     # Encodes userdata by standardising and mapping categorical values

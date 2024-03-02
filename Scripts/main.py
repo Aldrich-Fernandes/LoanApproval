@@ -245,7 +245,7 @@ class GUI:
             print("File not found. Loading default...")
             self.__loadDefault()
         else:
-            self.__PreProcessor.setScalingVals(scalingData)
+            self.__PreProcessor.setScalingData(scalingData)
 
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
@@ -254,7 +254,7 @@ class GUI:
         self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)
         scalingData = self.__model.loadModel(filePath)
 
-        self.__PreProcessor.setScalingVals(scalingData)
+        self.__PreProcessor.setScalingData(scalingData)
         status = "Default model loaded"
         self._saveStatusVal.set(status)
         self._saveStatusLabel.config(textvariable=self._saveStatusVal)

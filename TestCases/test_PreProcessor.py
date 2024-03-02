@@ -1,4 +1,4 @@
-from Scripts.DataHandle.PreProcess import PreProcess
+from Scripts.DataHandle import PreProcess
 
 import unittest
 

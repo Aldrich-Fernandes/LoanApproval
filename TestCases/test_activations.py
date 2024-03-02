@@ -1,5 +1,5 @@
-from Scripts.Activations.ReLU import ReLU
-from Scripts.Activations.Sigmoid import Sigmoid
+from Scripts.NeuralNetwork.Layer import ReLU
+from Scripts.NeuralNetwork.Layer import Sigmoid
 
 import unittest
 

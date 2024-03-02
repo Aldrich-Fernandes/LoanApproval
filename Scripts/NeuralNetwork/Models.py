@@ -1,6 +1,8 @@
-from Scripts import DataMethod as DM
-from Scripts import OptimiserSGD, BinaryCrossEntropy
+from .Optimisers import OptimiserSGD
+from .LossFunctions import BinaryCrossEntropy
 from .Layer import Layer
+
+from Scripts import DataMethod as DM
 
 import matplotlib.pyplot as plt
 

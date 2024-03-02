@@ -1,5 +1,5 @@
-from Activations import Sigmoid, ReLU
-from DataHandle import DataMethod as DM
+from Scripts import Sigmoid, ReLU
+from Scripts import DataMethod as DM
 
 from math import sqrt
 from random import gauss

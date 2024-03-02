@@ -10,16 +10,16 @@ training or prediction
 class PreProcess:
     def __init__(self, path=r"DataSet//HomeLoanTrain.csv"):
         # Initial data holders for training data
-        self.__TrainX = []
-        self.__TrainY = []
+        self._TrainX = []
+        self._TrainY = []
 
 
         # Data specific to the training data used
         self.__featuresToRemove = ["Loan_ID", "Self_Employed", "Gender", "Education", "Married", "Dependents"]
-        self.CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
+        self.__CategoricalFeatureKeys = {"Y": 1., "Yes": 1., "Male": 1., "Graduate": 1., "Urban": 1., 
                                     "N": 0., "No": 0., "Female": 0., "Not Graduate": 0., "Semiurban": 0.,
                                     "Rural": 2., "3+": 2.}
-        self.ScalingData = {'means': [], 'stds': []}
+        self._ScalingData = {'means': [], 'stds': []}
         self.__path = path
 
     # Generates a new random dataset
@@ -31,17 +31,17 @@ class PreProcess:
 
         # Feature Engineering - Making data usable for the model
 
-        self.FeatureColumns = DataMethod.Transpose(Dataset)
+        self.__FeatureColumns = DataMethod.Transpose(Dataset)
 
         self.__ConvertToInteger()
 
-        self.__TrainY = self.FeatureColumns.pop()
+        self._TrainY = self.__FeatureColumns.pop()
 
         self.__Standardisation()
 
-        self.__TrainX = DataMethod.Transpose(self.FeatureColumns)
+        self._TrainX = DataMethod.Transpose(self.__FeatureColumns)
 
-        self.__TrainX, self.__TrainY = DataMethod.ShuffleData(self.__TrainX, self.__TrainY)
+        self._TrainX, self._TrainY = DataMethod.ShuffleData(self._TrainX, self._TrainY)
 
     # Removes specified features (Attribute) from the dataset
     def __RemoveFeatures(self, Dataset):
@@ -69,56 +69,58 @@ class PreProcess:
 
     # Converts categorical values (such as strings) to integers using a predefined mapping
     def __ConvertToInteger(self):
-        for ColumnIndex, features in enumerate(self.FeatureColumns):
+        for ColumnIndex, features in enumerate(self.__FeatureColumns):
             for ElementIndex, element in enumerate(features):
                 try:                        # For data that is already numerical
-                    self.FeatureColumns[ColumnIndex][ElementIndex] = float(element)
+                    self.__FeatureColumns[ColumnIndex][ElementIndex] = float(element)
                 except ValueError:          # For data that is categorical
-                    if element not in self.CategoricalFeatureKeys.keys():
-                        self.CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
-                    self.FeatureColumns[ColumnIndex][ElementIndex] = self.CategoricalFeatureKeys[str(element)]
+                    if element not in self.__CategoricalFeatureKeys.keys():
+                        self.__CategoricalFeatureKeys[str(element)] = sum([ord(x) for x in element]) / 16
+                    self.__FeatureColumns[ColumnIndex][ElementIndex] = self.__CategoricalFeatureKeys[str(element)]
 
     # Z-score normalisation formula: (data - mean) / standard deviation
     # Improves interpretability and model performance by removing scale difference between features 
     def __Standardisation(self):
-        for ind, feature in enumerate(self.FeatureColumns):
+        for ind, feature in enumerate(self.__FeatureColumns):
             mean = sum(feature) / len(feature)
             StandardDeviation = ((sum([x**2 for x in feature]) / len(feature)) - mean**2) ** 0.5
 
             # To use when scale userdata properly for the dataset
-            self.ScalingData['means'].append(mean)
-            self.ScalingData['stds'].append(StandardDeviation)
+            self._ScalingData['means'].append(mean)
+            self._ScalingData['stds'].append(StandardDeviation)
 
             # Applying the standardisation
             try:
-                self.FeatureColumns[ind] = [(i - mean) / StandardDeviation for i in feature]
+                self.__FeatureColumns[ind] = [(i - mean) / StandardDeviation for i in feature]
             except ZeroDivisionError:
-                print(f"Mean: {mean} \nSTD: {StandardDeviation}")
-                input(self.FeatureColumns[ind])
+                print(f"Mean: {mean} \nSTD: {StandardDeviation} \n FeatureColumn: {self.__FeatureColumns[ind]}")
 
     # Splits the dataset into training and test sets and returns the data
     def getData(self, split=0.2): # default: 80-20 split
-        NumOfTrainData = round(len(self.__TrainX) * split)
-        TestX = [self.__TrainX.pop() for _ in range(NumOfTrainData)]
-        TestY = [self.__TrainY.pop() for _ in range(NumOfTrainData)]
-        return self.__TrainX, self.__TrainY, TestX, TestY
+        NumOfTrainData = round(len(self._TrainX) * split)
+        TestX = [self._TrainX.pop() for _ in range(NumOfTrainData)]
+        TestY = [self._TrainY.pop() for _ in range(NumOfTrainData)]
+        return self._TrainX, self._TrainY, TestX, TestY
 
-    # Used when loading a model
-    def updateScalingVals(self, data):
-        self.ScalingData = data
+    # Getters and Setters used when saving and loading a model
+    def setScalingVals(self, data):
+        self._ScalingData = data
+    
+    def getScalingVals(self):
+        return self._ScalingData
 
     # Encodes userdata by standardising and mapping categorical values
     def encode(self, UserData):
         try:
             for x, val in enumerate(UserData):
                 # Converting into numerical data
-                if val in self.CategoricalFeatureKeys.keys():
-                    val = float(self.CategoricalFeatureKeys[val])
+                if val in self.__CategoricalFeatureKeys.keys():
+                    val = float(self.__CategoricalFeatureKeys[val])
                 else:
                     val = float(val)
 
                 # Standardising the data
-                UserData[x] = (val - self.ScalingData["means"][x]) / self.ScalingData["stds"][x]
+                UserData[x] = (val - self._ScalingData["means"][x]) / self._ScalingData["stds"][x]
 
             return UserData
         except Exception as ex:

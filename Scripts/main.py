@@ -232,7 +232,7 @@ class GUI:
     def _saveModel(self):
         if self._fileName.get() != "":
             filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
-            status = self.__model.saveModel(filePath, self.__PreProcessor.ScalingData)
+            status = self.__model.saveModel(filePath, self.__PreProcessor.getScalingData())
             self._saveStatusVal.set(status)
             self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
@@ -245,7 +245,7 @@ class GUI:
             print("File not found. Loading default...")
             self.__loadDefault()
         else:
-            self.__PreProcessor.updateScalingVals(scalingData)
+            self.__PreProcessor.setScalingVals(scalingData)
 
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
@@ -254,7 +254,7 @@ class GUI:
         self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)
         scalingData = self.__model.loadModel(filePath)
 
-        self.__PreProcessor.updateScalingVals(scalingData)
+        self.__PreProcessor.setScalingVals(scalingData)
         status = "Default model loaded"
         self._saveStatusVal.set(status)
         self._saveStatusLabel.config(textvariable=self._saveStatusVal)

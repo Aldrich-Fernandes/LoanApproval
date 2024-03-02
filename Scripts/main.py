@@ -1,5 +1,4 @@
 from NeuralNetwork import LogisticRegression as Model
-from NeuralNetwork import Layer
 from DataHandle import PreProcess
 
 import tkinter as tk
@@ -12,7 +11,7 @@ User Interface
 class GUI:
     def __init__(self):
         self.__model = Model()                      # Neural Network model
-        self.__model.addLayer(Layer(6, 1, "Sigmoid"))    # adding Layers
+        self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)    # adding Layers
         self.__PreProcessor = PreProcess()          # For preping data
 
         # Loading the GUI window
@@ -252,7 +251,7 @@ class GUI:
     def __loadDefault(self):
         filePath = "DataSet\\Models\\default.txt" 
         self.__model = Model()      # Resets model incase default hyperparameters were changed.
-        self.__model.addLayer(Layer(6, 1, "Sigmoid"))
+        self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)
         scalingData = self.__model.loadModel(filePath)
 
         self.__PreProcessor.updateScalingVals(scalingData)

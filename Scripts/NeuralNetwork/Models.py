@@ -1,5 +1,6 @@
 from Scripts import DataMethod as DM
 from Scripts import OptimiserSGD, BinaryCrossEntropy
+from Scripts import Layer
 
 import matplotlib.pyplot as plt
 
@@ -28,8 +29,8 @@ class LogisticRegression:
     # Configuration Modules
         
     # Adds new layer to the model
-    def addLayer(self, layer):
-        self.__Layers.append(layer)
+    def addLayer(self, NoOfInputs, NoOfNeurons, Activation="Sigmoid", regularisationStrength=0.001):
+        self.__Layers.append(Layer(NoOfInputs, NoOfNeurons, Activation, regularisationStrength))
 
     # Resets layer with new, random weights
     def resetLayers(self):

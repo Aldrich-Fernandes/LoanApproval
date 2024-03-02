@@ -13,7 +13,7 @@ This class automatically applies activation to the layer's output.
 
 '''
 class Layer:
-    def __init__(self, NoOfInputs, NoOfNeurons, activation="Sigmoid", regularisationStrength=0.001):
+    def __init__(self, NoOfInputs, NoOfNeurons, activation, regularisationStrength):
         self._NoOfInputs = NoOfInputs           # Number of neurons/inputs in the previous layer
         self._NoOfNeurons = NoOfNeurons         # Number of neurons/inputs in this layer
 

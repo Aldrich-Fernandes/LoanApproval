@@ -22,7 +22,6 @@ class BinaryCrossEntropy:
     # Calculates how far the predicted values are from the true values
     def forward(self, predictions, TrueVals):
         predictions = clipEdges(predictions)
-
         # Formula used: -(true * log(Predicted) + (1 - true) * log(1 - Predicted))
         sampleLoss = [-((tVal * log(pVal)) + ((1 - tVal) * log(1 - pVal))) 
                       for tVal, pVal in zip(TrueVals, predictions)]

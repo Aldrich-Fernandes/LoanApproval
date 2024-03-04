@@ -2,12 +2,15 @@ from Scripts.NeuralNetwork.Optimisers import OptimiserSGD
 
 import unittest
 
-class TestOptimiserSGD(unittest.TestCase):
-    def setUp(self):
-        self.Optimiser = OptimiserSGD()
+class TestOptimiser(unittest.TestCase):
+    def test_LearningRateDecrease(self):
+        initalLr = 0.1
+        optimsier = OptimiserSGD(InitialLearningRate=initalLr, decay=0.01)
 
-    def test_LearningRateDecay(self):
-        pass # test both linear and exponential decay
+        for i in range(20):
+            optimsier.adjustLearningRate(i)
+            if optimsier.activeLearningRate == 0.0001:
+                self.assertLessEqual(optimsier.activeLearningRate, 0.0001)
+                break
 
-    def test_ParameterAdjustment(self):
-        pass
+            self.assertLessEqual(optimsier.activeLearningRate, initalLr)

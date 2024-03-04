@@ -3,19 +3,17 @@ from Scripts.NeuralNetwork.Layer import Sigmoid
 
 import unittest
 
-class TestRectifiedLinearUnit(unittest.TestCase):
+class TestRectifiedLinearUnit(unittest.TestCase):    
     def setUp(self):
         self.relu = ReLU()
     
     def test_reluForward(self):
-        self.relu = ReLU()
         inputs = [[-1, 0, 1], [2, -2, 3]]
         self.relu.forward(inputs)
         expected = [[0, 0, 1], [2, 0, 3]]
         self.assertEqual(self.relu.outputs, expected)
 
     def test_reluBackward(self):
-        self.relu = ReLU()
         inputs = [[-1, 0, 1], [2, -2, 3]]
         self.relu.forward(inputs)
         dvalues = None

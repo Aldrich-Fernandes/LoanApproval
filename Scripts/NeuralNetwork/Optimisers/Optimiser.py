@@ -13,23 +13,18 @@ dvalues).
 
 '''
 class OptimiserSGD:
-    def __init__(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95, mode="Linear"):
+    def __init__(self, InitialLearningRate=1e-4, decay=5e-5, momentum=0.95):
         self.__InitialLearningRate = InitialLearningRate          # Starting Learning rate
         self.__minimumLearningRate = InitialLearningRate * 0.001  # Lower bound Learning rate
         self.__decay = decay                                      # Rate at which Learning rate decreases
         self.__momentum = momentum                                # Promotes adjustment in one direction
         self.activeLearningRate = InitialLearningRate             # How much to adjust/step. 
 
-        self.__mode = mode                                        # What type of decay to use
-
     # Gradually decreases the learning rate to avoid overshooting the optimal parameters
     # If it is too high it will overshoot the optimal but if too low the mode won't train properly.
     def adjustLearningRate(self, iter): 
         if self.__decay != 0:
-            if self.__mode == "Linear":
-                newLearningRate = self.__InitialLearningRate / (1 + self.__decay * iter)
-            elif self.__mode == "Exponential":
-                newLearningRate = self.__InitialLearningRate * exp(-self.__decay * iter)
+            newLearningRate = self.__InitialLearningRate / (1 + self.__decay * iter)
 
             self.activeLearningRate = max(newLearningRate, self.__minimumLearningRate)
 

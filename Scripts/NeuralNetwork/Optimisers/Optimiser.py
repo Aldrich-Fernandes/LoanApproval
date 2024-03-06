@@ -40,24 +40,24 @@ class OptimiserSGD:
         if self.__momentum != 0:
 
             # Amount to added to the weights and biases to reduce fluctuations in accuracy and loss
-            weightVelocityUpdate, biasesVelocityUpdate = layer.getVelocities()
+            prevWeightsVelocity, prevBiasesVelocity = layer.getVelocities()
 
             # New weight velocity = momentum * Velocity - activeLearningRate * dweights
-            weightVelocityUpdate = [[a - b for a, b in zip(velocityRow, dweightsRow)] 
+            newWeightsVelocity = [[a - b for a, b in zip(velocityRow, dweightsRow)] 
                                         for velocityRow, dweightsRow in zip(
-                                            DM.Multiply(self.__momentum, weightVelocityUpdate), weightUpdate)]
+                                            DM.Multiply(self.__momentum, prevWeightsVelocity), weightUpdate)]
 
             # New bias velocity = momentum * Velocity - activeLearningRate * dbiases
-            biasesVelocityUpdate = [a - b for a, b in zip(
-                                        DM.Multiply(self.__momentum, biasesVelocityUpdate), biasesUpdate)]
+            newBiasesVelocity = [a - b for a, b in zip(
+                                        DM.Multiply(self.__momentum, prevBiasesVelocity), biasesUpdate)]
 
             # Updates velocities for the layer to be used in the next loop
-            layer.setVelocities(weightVelocityUpdate, biasesVelocityUpdate)
+            layer.setVelocities(newWeightsVelocity, newBiasesVelocity)
 
             # Final (optimising) updates to the weights and biases of the layer for this loop
-            weights = [[a + b for a, b in zip(weights[x], weightVelocityUpdate[x])] 
+            weights = [[a + b for a, b in zip(weights[x], newWeightsVelocity[x])] 
                        for x in range(len(weights))]
-            biases = [a + b for a, b in zip(biases, biasesVelocityUpdate)]
+            biases = [a + b for a, b in zip(biases, newBiasesVelocity)]
         else:
             weights = [[a - b for a, b in zip(weights[x], weightUpdate[x])] 
                        for x in range(len(weights))]

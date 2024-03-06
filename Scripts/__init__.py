@@ -1,10 +1,10 @@
 from .DataHandle import DataMethod
-from .DataHandle import PreProcess
+from .DataHandle import Preprocess
 
 from .NeuralNetwork import LogisticRegression
 
 __all__ = [
     "DataMethod",
-    "PreProcess",
+    "Preprocess",
     "LogisticRegression"
 ]

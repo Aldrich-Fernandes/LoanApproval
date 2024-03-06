@@ -1,9 +1,9 @@
 import unittest
-from Scripts.DataHandle import PreProcess
+from Scripts.DataHandle import Preprocess
 
 class TestPreprocessor(unittest.TestCase):
     def setUp(self):
-        self.processor = PreProcess()
+        self.processor = Preprocess()
         self.processor.newDataset()
         self.TrainX = self.processor._TrainX
 

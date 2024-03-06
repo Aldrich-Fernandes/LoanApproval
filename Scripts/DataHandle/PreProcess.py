@@ -7,7 +7,7 @@ Raw Data cannot be processed by the model. Therefore both training and userdata 
 training or prediction
 
 '''
-class PreProcess:
+class Preprocess:
     def __init__(self, path=r"DataSet//HomeLoanTrain.csv"):
         # Initial data holders for training data
         self._TrainX = []

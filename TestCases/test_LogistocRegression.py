@@ -1,5 +1,5 @@
 from Scripts.NeuralNetwork.Models import LogisticRegression
-from Scripts.DataHandle import PreProcess
+from Scripts.DataHandle import Preprocess
 
 import unittest
 
@@ -7,7 +7,7 @@ class TestLogisticRegression(unittest.TestCase):
     def setUp(self):
         self.model = LogisticRegression()
         self.model.addLayer(6, 1)
-        self.Preprocessor = PreProcess()
+        self.Preprocessor = Preprocess()
         self.Preprocessor.newDataset()
 
     def test_Prediction(self):

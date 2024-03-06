@@ -1,5 +1,5 @@
 from NeuralNetwork import LogisticRegression as Model
-from DataHandle import PreProcess
+from DataHandle import Preprocess
 
 import tkinter as tk
 from tkinter import ttk, simpledialog
@@ -12,7 +12,7 @@ class GUI:
     def __init__(self):
         self.__model = Model()                      # Neural Network model
         self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)    # adding Layers
-        self.__PreProcessor = PreProcess()          # For preparing data
+        self.__Preprocessor = Preprocess()          # For preparing data
 
         # Loading the GUI window
         self.root = tk.Tk()
@@ -178,7 +178,7 @@ class GUI:
                 # Ensures all data is valid
                 if not ('' in self.CollectedData or len(self.CollectedData) != 6):
                     # Encodes data - More info in DataHandle.py file
-                    UserData = self.__PreProcessor.encode(self.CollectedData)
+                    UserData = self.__Preprocessor.encode(self.CollectedData)
                     self.__model.Predict([UserData])
                     result = round(self.__model.Result * 100)
                    
@@ -200,8 +200,8 @@ class GUI:
         self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
         # Restarts already initialised Preprocess object
-        self.__PreProcessor.newDataset()
-        TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+        self.__Preprocessor.newDataset()
+        TrainX, TrainY, TestX, TestY = self.__Preprocessor.getData()
 
         valid = False
         while not valid:
@@ -221,14 +221,14 @@ class GUI:
                 self._saveStatusLabel.config(textvariable=self._saveStatusVal)
             else:
                 self.__model.resetLayers()
-                self.__PreProcessor.newDataset()
-                TrainX, TrainY, TestX, TestY = self.__PreProcessor.getData()
+                self.__Preprocessor.newDataset()
+                TrainX, TrainY, TestX, TestY = self.__Preprocessor.getData()
        
     # Saves model data so that it can be loaded later
     def _saveModel(self):
         if self._fileName.get() != "":
             filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
-            status = self.__model.saveModel(filePath, self.__PreProcessor.getScalingData())
+            status = self.__model.saveModel(filePath, self.__Preprocessor.getScalingData())
             self._saveStatusVal.set(status)
             self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
@@ -242,7 +242,7 @@ class GUI:
             print("File not found. Loading default...")
             self.__loadDefault()
         else:
-            self.__PreProcessor.setScalingData(scalingData)
+            self.__Preprocessor.setScalingData(scalingData)
 
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):
@@ -251,7 +251,7 @@ class GUI:
         self.__model.addLayer(NoOfInputs=6, NoOfNeurons=1)
         scalingData = self.__model.loadModel(filePath)
 
-        self.__PreProcessor.setScalingData(scalingData)
+        self.__Preprocessor.setScalingData(scalingData)
         status = "Default model loaded"
         self._saveStatusVal.set(status)
         self._saveStatusLabel.config(textvariable=self._saveStatusVal)

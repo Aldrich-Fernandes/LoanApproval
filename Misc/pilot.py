@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # From my programs
-from DataHandle.PreProcess import PreProcess
+from DataHandle.Preprocess import Preprocess
 
 # random forest classification - utilises tree traversal
 def RandForest(X_train, X_test, y_train, y_test):
@@ -39,14 +39,14 @@ def LogReg(X_train, X_test, y_train, y_test):   # Same as RanForest()
     return round(sum(acc)/len(acc), 4)
 
 def testModels():        
-    PreProcessor = PreProcess()
+    Preprocessor = Preprocess()
     LogRegAcc = []
     RandForestAcc = []
 
     for x in range(10): # Trains models with 10 different datasets.
         print(f"Training dataset {x+1}")
-        PreProcessor.newDataset()
-        TrainX, TrainY, _, _ = PreProcessor.getData(split=0)
+        Preprocessor.newDataset()
+        TrainX, TrainY, _, _ = Preprocessor.getData(split=0)
         X_train, X_test, y_train, y_test = train_test_split(TrainX, TrainY, test_size=0.2, random_state=42)
 
         LogRegAcc.append(LogReg(X_train, X_test, y_train, y_test))

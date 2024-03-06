@@ -1,7 +1,7 @@
 from .DataUtils import DataMethod
-from .PreProcess import PreProcess
+from .Preprocess import Preprocess
 
 __all__ = [
     "DataMethod",
-    "PreProcess"
+    "Preprocess"
 ]

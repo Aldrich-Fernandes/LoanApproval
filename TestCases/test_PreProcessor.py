@@ -1,5 +1,5 @@
 import unittest
-from Scripts.DataHandle import Preprocess
+from Scripts.DataHandle import Preprocess, DataMethod
 
 class TestPreprocessor(unittest.TestCase):
     def setUp(self):
@@ -14,6 +14,15 @@ class TestPreprocessor(unittest.TestCase):
             self.assertTrue(isinstance(row, list))
             for val in row:         # Check if the data consists of floats
                 self.assertTrue(isinstance(val, float))
+    
+    def test_targetClassBalanced(self):
+        count = {"1.0": 0,  # Train Y values converted to numerical form. 
+                 "0.0": 0}
+        TrainY = self.processor._TrainY
+        for val in TrainY:  # Counts number of each target class.
+            count[str(val)] += 1
+        
+        self.assertEqual(count["1.0"], count["0.0"])
     
     def test_DataIsStandardised(self):
         # Check if the mean of the dataset is approximately 0

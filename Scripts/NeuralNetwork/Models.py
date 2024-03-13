@@ -76,8 +76,8 @@ class LogisticRegression:
             accHold = []
             lossHold = []
             learningRateHold = []
-            
-            DM.ShuffleData(X, Y)                        # Shuffling dataset - Improves generalisation
+
+            X, Y = DM.ShuffleData(X, Y)                     # Shuffling dataset - Improves generalisation
         
             # Using batches - Reduces overfitting by passing smaller groups of data to the model at a time
             for i in range(0, sampleSize, batch):

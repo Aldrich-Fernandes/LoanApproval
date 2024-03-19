@@ -165,7 +165,7 @@ class LogisticRegression:
     # Saves the model in a txt file
     def saveModel(self, filePath, ScalingData):
         try:
-            # Save preprocess ting needed for encoding
+            # Save preprocess scaling needed for encoding
             file = open(filePath,  "w")
             file.write(f"{ScalingData}\n")
             for layer in self.__Layers:

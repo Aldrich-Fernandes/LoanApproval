@@ -2,7 +2,8 @@ from NeuralNetwork import LogisticRegression as Model
 from DataHandle import Preprocess
 
 import tkinter as tk
-from tkinter import ttk, simpledialog
+from tkinter import ttk, simpledialog, messagebox
+from os import path 
 
 '''
 User Interface
@@ -29,11 +30,11 @@ class GUI:
         self.__training = False         # Pauses user input if model is being trained
 
         # Adjustable hyperparameters
-        self._updateValsTo = {"newEpoch": tk.IntVar(value = 25),
-                             "newRegStr": tk.DoubleVar(value = 0.001),
-                             "initialLr": tk.DoubleVar(value = 0.0001),
-                             "decay": tk.DoubleVar(value = 0.00005),
-                             "momentum": tk.DoubleVar(value = 0.95)}
+        self._updateValsTo = {"newEpoch": tk.StringVar(value = "25"),
+                             "newRegStr": tk.StringVar(value = "0.001"),
+                             "initialLr": tk.StringVar(value = "0.0001"),
+                             "decay": tk.StringVar(value = "0.00005"),
+                             "momentum": tk.StringVar(value = "0.95")}
 
         # Tkinter variable for outputs and user inputs
         self._resultVal = tk.StringVar(value="...")
@@ -110,7 +111,8 @@ class GUI:
     # Updates the model's hyperparameters and retrains the model with the new hyperparameters
     def __updateHyperparameters(self):
         try:
-            optimiserVals = [item.get() for item in list(self._updateValsTo.values())]
+            optimiserVals = [float(item.get()) if key != "newEpoch" else int(item.get())
+                              for key, item in list(self._updateValsTo.items())]
            
             # Apply hyperparameters to the model
             self.__model.updateEpoch(optimiserVals[0])
@@ -121,7 +123,8 @@ class GUI:
             self.__newModel()
 
         except ValueError:
-            print("Invalid input for epochs or regularisation strength. Please enter valid values.")
+            messagebox.showerror("Invalid Hyperparameters", 
+                                 "Aborted retraining due to an invalid hyperparameter being set.")
 
     # Main Prediction Interface
     def __LoadPredictionGUI(self):
@@ -204,7 +207,8 @@ class GUI:
         TrainX, TrainY, TestX, TestY = self.__Preprocessor.getData()
 
         valid = False
-        while not valid:
+        count = 0
+        while not valid and count != 10:
             # Trains model with new random data
             self.__model.train(TrainX, TrainY)
             self.__model.test(TestX, TestY)
@@ -223,14 +227,23 @@ class GUI:
                 self.__model.resetLayers()
                 self.__Preprocessor.newDataset()
                 TrainX, TrainY, TestX, TestY = self.__Preprocessor.getData()
-       
+                count += 1
+
+        if count == 10:
+            messagebox.showerror("Model generateion aborted.",
+                                 "A valid, stable model was unable to be generated.")
+            self.__loadDefault()
+              
     # Saves model data so that it can be loaded later
     def _saveModel(self):
+        filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
         if self._fileName.get() != "":
-            filePath = f"DataSet\\Models\\{self._fileName.get()}.txt"
-            status = self.__model.saveModel(filePath, self.__Preprocessor.getScalingData())
-            self._saveStatusVal.set(status)
-            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+            if not path.isfile(filePath):
+                status = self.__model.saveModel(filePath, self.__Preprocessor.getScalingData())
+                self._saveStatusVal.set(status)
+                self._saveStatusLabel.config(textvariable=self._saveStatusVal)
+            else:
+                messagebox.showerror("ERROR", "File name already exists!")
 
     # Loads saved models
     def _loadModel(self):
@@ -239,10 +252,11 @@ class GUI:
         scalingData = self.__model.loadModel(filePath)
 
         if scalingData == None:
-            print("File not found. Loading default...")
-            self.__loadDefault()
+            messagebox.showerror("Error", f"Following file '{modelName}' doesn't exist.")
         else:
             self.__Preprocessor.setScalingData(scalingData)
+            self._saveStatusVal.set(f"Model '{modelName}' loaded.")
+            self._saveStatusLabel.config(textvariable=self._saveStatusVal)
 
     # Loads the a pretrained model to save time when launching the program
     def __loadDefault(self):

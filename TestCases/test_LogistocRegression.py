@@ -20,7 +20,7 @@ class TestLogisticRegression(unittest.TestCase):
 
             if self.model.Accuracy > targetAccuracy:
                 # Called again to show predicted values  
-                self.model.test(TestX, TestY, True)
+                self.model.test(TestX, TestY)
                 self.assertGreaterEqual(self.model.Accuracy, targetAccuracy)
                 break
             else:

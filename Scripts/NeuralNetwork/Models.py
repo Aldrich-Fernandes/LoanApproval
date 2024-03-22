@@ -130,7 +130,6 @@ class LogisticRegression:
     # Tests the model using data it has never seen
     def test(self, TestX, TestY, showTests=False):
         result = self.__forward(TestX)
-        
         if showTests:
             for x in range(len(result)):
                 print(f"True: {TestY[x]} Predicted: {round(result[x])} Output: {result[x]}")

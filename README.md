@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Home Loan Eligibility Application is a user-friendly software tool designed to help individuals assess their eligibility for home loans. This application utilizes a neural network model to predict loan approval based on various financial and personal factors provided by the user.
+A mortgage eligibility checker, designed for mortgage officers, which utilizes a logistic regression model within a neural network framework. This model is based on a data file of prior applicants, allowing it to assess application strength effectively. The program also includes features such as model saving/loading, hyper-parameter adjustment, and streamlined data processing, providing an efficient tool for accurate decision-making and application filtering.
 
 ## Features:
 - Input your financial and personal details through a simple and intuitive user interface.

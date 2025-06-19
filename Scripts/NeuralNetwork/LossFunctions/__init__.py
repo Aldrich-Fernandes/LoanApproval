@@ -1,4 +1,4 @@
-from .Loss import BinaryCrossEntropy
+from .loss import BinaryCrossEntropy
 
 __all__ = [
     "BinaryCrossEntropy",

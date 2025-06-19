@@ -1,5 +1,5 @@
 from .DataUtils import DataMethod
-from .Preprocess import Preprocess
+from .PreProcess import Preprocess
 
 __all__ = [
     "DataMethod",
